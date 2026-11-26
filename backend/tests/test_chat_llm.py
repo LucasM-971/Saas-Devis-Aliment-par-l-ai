@@ -244,8 +244,7 @@ def test_preview_utilise_la_kb_du_corps(env, monkeypatch):
     assert resp.status_code == 200
 
     system_text = captured["system"][0]["text"]
-    # L'aperçu teste bien la KB non sauvegardée envoyée dans le corps,
-    # avec le nom d'entreprise lu en base (jamais fourni par le client).
+    # L'aperçu utilise la KB du corps et le nom d'entreprise en base
     assert "QA brouillon" in system_text
     assert "Acme" in system_text
 

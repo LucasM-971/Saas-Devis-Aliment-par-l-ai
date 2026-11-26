@@ -1,15 +1,8 @@
-"""Devis « exemple » prêt à importer : un brouillon réaliste par métier.
-
-Sert au bouton « Importer un exemple » du dashboard : l'artisan obtient un
-devis complet (client fictif, postes chiffrés, conditions conformes) qu'il
-peut ensuite modifier ou supprimer. Aucune dépendance DB ni LLM : le service
-renvoie un payload identique à celui d'une création manuelle (QuoteCreate).
-"""
+"""Devis d'exemple par métier (bouton « Importer un exemple »)."""
 
 from app.schemas.quote import QuoteCreate, QuoteLineIn
 
-# Conditions par défaut : mentions légales usuelles d'un devis du bâtiment
-# (validité, acompte, délai). L'artisan reste libre de les ajuster.
+# Conditions par défaut : validité, acompte, délai
 _SAMPLE_NOTES = (
     "Devis valable 30 jours à compter de sa date d'émission. "
     "Acompte de 30 % à la signature, solde à la fin des travaux. "
@@ -17,8 +10,7 @@ _SAMPLE_NOTES = (
 )
 
 
-# Un exemple = client fictif, TVA conseillée du métier, et 3-4 postes types.
-# vat_rate est un ratio (0.10 = 10 %), aligné sur le front et QuoteCreate.
+# vat_rate en ratio (0.10 = 10 %)
 _SAMPLES: dict[str, dict] = {
     "reno": {
         "vat_rate": 0.055,

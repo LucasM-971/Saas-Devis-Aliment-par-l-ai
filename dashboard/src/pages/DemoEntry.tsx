@@ -3,9 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
-// Parcours « Voir la démo » : connexion au compte de démonstration public
-// (rôle viewer, lecture seule ; données réelles servies par l'API), puis
-// redirection vers le dashboard.
+// Connexion au compte démo puis redirection.
 export default function DemoEntry() {
   const { loginAsDemo } = useAuth();
   const navigate = useNavigate();

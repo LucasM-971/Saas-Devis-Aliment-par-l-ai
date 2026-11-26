@@ -73,12 +73,11 @@ def update_current_company(
         if payload.metier and not is_known_metier(payload.metier):
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Métier inconnu")
         company.metier = payload.metier or None
-        # Le métier pilote le service chiffrable par le chat (wedge « 1 métier »).
+        # Le métier définit le service chiffrable par le chat
         if company.metier:
             sync_service_with_metier(db, company.id, company.metier)
 
-    # Mentions légales : champs texte facultatifs (chaîne vide → NULL) ; le
-    # drapeau franchise en base de TVA est un booléen.
+    # Champs vides → NULL
     _LEGAL_TEXT_FIELDS = {
         "legalForm": "legal_form",
         "shareCapital": "share_capital",
@@ -121,8 +120,7 @@ def create_company(
         )
         or 0
     )
-    # La gate s'applique dès qu'un des espaces possédés est en plan gratuit :
-    # le multi-entreprises est une fonctionnalité premium.
+    # Multi-entreprises réservé au premium
     if owned >= FREE_MAX_OWNED_COMPANIES:
         plans = db.scalars(
             select(Company.plan)

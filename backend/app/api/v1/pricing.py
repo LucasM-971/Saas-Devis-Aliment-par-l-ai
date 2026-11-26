@@ -30,8 +30,7 @@ def list_price_items(db: DbSession, membership: ActiveMembership) -> list[PriceI
     return _serialize(items)
 
 
-# Remplace la grille tarifaire (page Réglages › Catalogue). Les anciens postes sont
-# désactivés (pas supprimés) : les lignes de devis existantes gardent leur référence.
+# Remplace la grille tarifaire ; les anciens postes sont désactivés, pas supprimés.
 @router.put("/items", response_model=list[PriceItemOut])
 def replace_price_items(
     payload: list[PriceItemIn], db: DbSession, membership: ActiveMembership
@@ -45,8 +44,7 @@ def replace_price_items(
     for item in existing:
         item.is_active = False
 
-    # Les nouveaux postes sont rattachés au service du métier de l'entreprise
-    # (wedge « 1 métier ») s'il existe, pour rester chiffrables par le chat.
+    # Rattache les postes au service du métier
     service_id = db.scalar(
         select(Service.id)
         .where(Service.company_id == company_id, Service.is_active.is_(True))

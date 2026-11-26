@@ -2,8 +2,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field
 
-# Base de connaissances + apparence du chatbot, persistées dans WidgetSettings.
-# La BDC (qas / blocs / prix_m2) est rangée dans la colonne JSON `config`.
+# Base de connaissances et apparence du chatbot.
 
 
 # Une entrée question / réponse de la base de connaissances.
@@ -27,10 +26,7 @@ class TarifM2Item(BaseModel):
     prix: str = ""
 
 
-# Variantes bornées pour l'ÉCRITURE : la BDC entière est injectée dans le prompt
-# système à chaque message du chat (coût LLM) et l'apparence part dans des
-# colonnes MySQL de taille fixe (au-delà : DataError → 500). Les schémas de
-# lecture restent non bornés pour ne pas casser des valeurs déjà en base.
+# Limites à l'écriture seulement
 class QAItemIn(QAItem):
     question: str = Field(default="", max_length=500)
     answer: str = Field(default="", max_length=2000)

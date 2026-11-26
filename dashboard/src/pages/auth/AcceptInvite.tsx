@@ -23,8 +23,7 @@ type LoadState =
   | { status: 'ready'; invite: Lookup }
   | { status: 'invalid' };
 
-// Acceptation d'une invitation d'équipe : le lien (token) prouve l'adresse.
-// Nouveau venu → création du compte ; compte existant → mot de passe actuel.
+// Acceptation d'invitation : création de compte ou mot de passe existant.
 export default function AcceptInvite() {
   const [params] = useSearchParams();
   const token = params.get('token') ?? '';

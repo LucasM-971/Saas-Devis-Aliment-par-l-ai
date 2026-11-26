@@ -9,8 +9,7 @@ from app.database import Base
 from app.models.base import UNITS, IdMixin, TimestampMixin, fk_column
 
 QUOTE_STATUSES = ("draft", "pending", "validated", "sent", "accepted", "rejected", "expired")
-# Résultat du DERNIER envoi e-mail au client (l'envoi est synchrone : jamais de
-# « pending » orphelin). "none" = jamais tenté.
+# Résultat du dernier envoi ; "none" = jamais tenté
 EMAIL_STATUSES = ("none", "sent", "failed")
 
 
@@ -51,12 +50,10 @@ class Quote(IdMixin, TimestampMixin, Base):
     created_by: Mapped[int | None] = fk_column("users.id", nullable=True, ondelete="SET NULL")
     validated_by: Mapped[int | None] = fk_column("users.id", nullable=True, ondelete="SET NULL")
     sent_at: Mapped[datetime | None]
-    # Posé par PATCH /quotes/{id} : un brouillon retouché par l'artisan n'est
-    # plus jamais écrasé par un nouveau tour de chat du prospect.
+    # Retouché par l'artisan : protégé du chat
     artisan_edited: Mapped[bool] = mapped_column(default=False)
     email_status: Mapped[str] = mapped_column(Enum(*EMAIL_STATUSES), default="none")
-    # Le PDF réellement envoyé au client (immutabilité du document légal :
-    # les lignes du devis restent éditables, pas le document parti).
+    # PDF réellement envoyé
     sent_pdf: Mapped[bytes | None] = mapped_column(MEDIUMBLOB)
 
     lines: Mapped[list["QuoteLine"]] = relationship(

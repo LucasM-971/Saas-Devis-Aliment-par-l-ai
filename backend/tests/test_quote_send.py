@@ -1,8 +1,4 @@
-"""Envoi du devis au client : synchrone, statuts persistés, PDF stocké.
-
-Le rendu PDF est mocké (WeasyPrint non requis pour ces tests) ; l'e-mail part
-en mode console par défaut (aucun SMTP).
-"""
+"""Envoi du devis : statuts, PDF stocké (rendu mocké, e-mail en console)."""
 
 import smtplib
 from decimal import Decimal

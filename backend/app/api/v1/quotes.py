@@ -85,9 +85,7 @@ def _apply_computation(quote: Quote, payload: QuoteCreate) -> None:
         discount_type=payload.discountType,
         discount_value=Decimal(str(payload.discountValue)),
     )
-    # Le front édite le nom complet : on le découpe pour rester cohérent avec
-    # les devis créés par le chat (prénom + nom séparés), sans doubler le nom.
-    # Tronqué aux colonnes (String(100)) : au-delà, l'UPDATE échouerait en 500.
+    # Découpe le nom complet en prénom/nom, tronqué à 100 caractères
     first, _, last = payload.clientName.strip().partition(" ")
     quote.customer_first_name = first[:100]
     quote.customer_last_name = last[:100] or None
@@ -119,10 +117,7 @@ def list_quotes(db: DbSession, membership: ActiveMembership) -> list[QuoteOut]:
     return [_serialize(q) for q in quotes]
 
 
-# with_for_update : le statut lu sert de garde (contenu verrouillé, transitions) ;
-# sans verrou de ligne, un PATCH concurrent d'un « envoi » passerait la garde sur
-# l'ancien statut et modifierait un devis déjà parti chez le client (TOCTOU).
-# SQLite ignore FOR UPDATE sans effet.
+# Verrou de ligne : évite qu'un PATCH concurrent modifie un devis déjà envoyé
 def _get_owned_quote(db: DbSession, membership: ActiveMembership, quote_id: int) -> Quote:
     quote = db.get(Quote, quote_id, with_for_update=True)
     if quote is None or quote.company_id != membership.company_id:
@@ -163,15 +158,11 @@ def _create_draft(
     return _serialize(quote)
 
 
-# Statuts dont le contenu est figé : un devis parti chez le client (ou clos) ne
-# se réécrit pas — un devis accepté a valeur contractuelle. Les statuts se
-# gèrent via la machine à états, pas en modifiant les montants.
+# Statuts dont le contenu n'est plus modifiable
 _LOCKED_STATUSES = ("sent", "accepted", "rejected", "expired")
 
 
-# Extrait un brouillon de devis depuis un fichier (PDF/DOCX/texte). Rien n'est
-# persisté : le front pré-remplit le formulaire, l'utilisateur corrige puis crée
-# le devis normalement (le serveur recalcule alors tous les montants).
+# Extrait un brouillon depuis un fichier (PDF/DOCX/texte), sans rien enregistrer.
 @router.post("/import", response_model=QuoteDraftOut)
 def import_quote(
     membership: ActiveMembership,
@@ -238,8 +229,7 @@ def update_quote(
             "Ce devis a été envoyé ou clôturé : son contenu ne peut plus être modifié.",
         )
     _apply_computation(quote, payload)
-    # Un brouillon retouché par l'artisan ne sera plus jamais écrasé par un
-    # nouveau tour de chat du prospect (voir /chat/quote).
+    # Retouché par l'artisan : le chat ne l'écrasera plus
     quote.artisan_edited = True
     audit_service.record(
         db, company_id=membership.company_id, type_="quote",
@@ -272,10 +262,7 @@ def update_status(
     return _serialize(quote)
 
 
-# Envoie le devis (PDF joint) au client, SYNCHRONE : l'artisan a une réponse
-# nette — parti (statut « envoyé ») ou échoué (email_status=failed, statut
-# inchangé, un nouveau clic réessaie). Le PDF réellement parti est stocké
-# (document légal immuable, indépendant des lignes qui restent éditables).
+# Envoie le devis en PDF au client (synchrone) et stocke le PDF envoyé.
 @router.post("/{quote_id}/send", response_model=QuoteOut)
 def send_quote(quote_id: int, db: DbSession, membership: ActiveMembership) -> QuoteOut:
     require_writer(membership)
@@ -308,8 +295,7 @@ def send_quote(quote_id: int, db: DbSession, membership: ActiveMembership) -> Qu
             "Envoi d'e-mails non configuré sur ce serveur (SMTP).",
         ) from exc
     except (smtplib.SMTPException, OSError) as exc:
-        # Échec réel d'envoi : trace persistée, statut du devis INCHANGÉ —
-        # jamais de devis « envoyé » que le client n'a pas reçu.
+        # Échec d'envoi : statut inchangé
         quote.email_status = "failed"
         db.commit()
         raise HTTPException(

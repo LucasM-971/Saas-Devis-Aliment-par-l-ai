@@ -62,8 +62,7 @@ def _plan_feature_labels(plan: str) -> list[str]:
     return labels
 
 
-# Catalogue public des offres (section Tarifs de la landing). Sans
-# authentification : reflète exactement les gates servies par l'API.
+# Catalogue public des offres (landing).
 @router.get("/plans", response_model=list[PublicPlanOut])
 def list_plans() -> list[PublicPlanOut]:
     return [
@@ -95,7 +94,7 @@ def get_plan(db: DbSession, membership: ActiveMembership) -> PlanOut:
     return _plan_out(db, company)
 
 
-# Changement de plan simulé (Stripe gelé — cf. ROADMAP). Réservé au propriétaire.
+# Changement de plan simulé (pas de paiement en ligne). Réservé à l'owner.
 @router.post("/plan", response_model=PlanOut)
 def change_plan(payload: PlanChangeIn, db: DbSession, membership: ActiveMembership) -> PlanOut:
     if membership.role != "owner":

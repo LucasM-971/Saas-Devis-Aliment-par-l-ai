@@ -1,21 +1,8 @@
-"""Peuple la base avec des données de démonstration (idempotent : réinitialise d'abord).
+"""Remplit la base avec des données de démo (réinitialise d'abord).
 
-Usage : depuis backend/, avec le venv actif :  python -m scripts.seed
-
-Deux niveaux d'accès sont seedés :
-- Démo publique (parcours /demo) : demo@devis-ai.fr / demo1234 — rôle « viewer »,
-  strictement en lecture seule. Ces identifiants sont publics (ils figurent dans
-  le bundle du front) car ce compte n'autorise aucune écriture.
-- Comptes à privilèges (owner/admin/member de l'Atelier Dupont) : en dev, mot de
-  passe partagé « motdepasse » (pratique en local) ; en prod (ENVIRONMENT=prod),
-  un mot de passe fort aléatoire et non exporté — personne ne s'y connecte, ils ne
-  portent que la paternité des données de démo. Aucun compte à privilèges n'est
-  donc atteignable avec un mot de passe connu en production.
-
-Le jeu de données suit le wedge produit : 1 métier (peinture / revêtements),
-qualification par le chat, devis générés en brouillon puis validés par l'artisan.
-Atelier Dupont est en plan premium (toutes les fonctionnalités visibles),
-BâtiVert SARL en plan gratuit (démo des verrous premium).
+Usage (depuis backend/) : python -m scripts.seed
+Démo publique : demo@devis-ai.fr / demo1234 (viewer, lecture seule).
+Autres comptes : « motdepasse » en dev, aléatoire en prod.
 """
 
 import secrets
@@ -45,27 +32,19 @@ from app.models import (
 )
 from app.services.pricing_engine import LineInput, compute_quote
 
-# ─── Compte de démonstration public (parcours /demo, rôle viewer) ─────────────
-# Identifiants volontairement publics : ce compte est en lecture seule, il ne
-# peut rien modifier. Le front s'y connecte pour le parcours « Voir la démo ».
+# ─── Compte démo public (lecture seule) ───
 DEMO_VIEWER_EMAIL = "demo@devis-ai.fr"
 DEMO_VIEWER_PASSWORD = "demo1234"
 
 
 def _staff_password() -> str:
-    """Mot de passe des comptes à privilèges (owner/admin/member) du jeu de démo.
-
-    En prod, un secret fort et aléatoire : ces comptes ne servent qu'à porter les
-    données seedées, personne ne s'y connecte, et aucun mot de passe connu ne doit
-    ouvrir un accès en écriture. En dev, mot de passe partagé pour le confort local.
-    """
+    """Mot de passe des comptes seedés : aléatoire en prod, fixe en dev."""
     if settings.environment == "prod":
         return secrets.token_urlsafe(24)
     return "motdepasse"
 
 
-# ─── Grille tarifaire (métier peinture / revêtements, aligné sur le front) ───
-# (libellé, unité, prix_unitaire)
+# ─── Grille tarifaire : (libellé, unité, prix_unitaire) ───
 PRICE_ITEMS = [
     ("Peinture murs (2 couches)", "m2", 28),
     ("Peinture plafond", "m2", 32),
@@ -80,8 +59,7 @@ PRICE_ITEMS = [
 # Zone desservie : Paris intra-muros.
 POSTAL_CODES = [f"750{arr:02d}" for arr in range(1, 21)]
 
-# ─── Devis ────────────────────────────────────────────────────────────────────
-# (réf, prénom, nom, email, statut_en, tva_ratio, date, [(libellé, qté, pu, unité)…])
+# ─── Devis : (réf, prénom, nom, email, statut, tva, date, lignes) ───
 QUOTES = [
     ("DEV-2026-0042", "Marie", "Lefèvre", "marie.lefevre@email.fr", "pending", 0.1, "2026-06-27",
      [("Pose de carrelage sol", 24, 55, "m2"), ("Préparation et protection des surfaces", 1, 250, "flat")]),
@@ -101,8 +79,7 @@ QUOTES = [
      [("Peinture murs (2 couches)", 300, 28, "m2"), ("Préparation et protection des surfaces", 1, 250, "flat")]),
 ]
 
-# ─── Prospects ────────────────────────────────────────────────────────────────
-# (prénom, nom, email, téléphone, raison, date)
+# ─── Prospects : (prénom, nom, email, téléphone, raison, date) ───
 LEADS = [
     ("Lucie", "Girard", "lucie.g@free.fr", "06 12 34 56 78", "out_of_zone", "2026-07-02"),
     ("Marc", "Antoine", "marc.antoine@email.fr", "07 88 99 00 11", "incomplete", "2026-07-01"),

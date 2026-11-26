@@ -23,7 +23,7 @@ venv/
 !.env.example
 !.env.prod.example
 
-# Sauvegardes MySQL du pilote (docker-compose.prod.yml)
+# Sauvegardes MySQL (docker-compose.prod.yml)
 backups/
 
 # Logs
@@ -41,3 +41,9 @@ npm-debug.log*
 coverage/
 .vitest/
 .gstack/
+
+# Notes IA / outils locaux
+.claude/
+ROADMAP.md
+TODOS.md
+architecture-mvc.md

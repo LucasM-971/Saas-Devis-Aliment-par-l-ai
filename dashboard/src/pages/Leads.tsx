@@ -43,8 +43,7 @@ export default function Leads() {
     [leads, filter, search],
   );
 
-  // Conversion réelle : le serveur crée un devis brouillon pré-rempli,
-  // puis on ouvre ce devis pour le chiffrer.
+  // Crée un devis brouillon puis l'ouvre
   const convert = async (id: string) => {
     setConvertingId(id);
     setConvertError('');

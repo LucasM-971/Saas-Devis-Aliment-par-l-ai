@@ -10,18 +10,16 @@ from app.config import settings
 from app.llm.prompts import MAX_BUTTONS, build_system_prompt
 from app.llm.schemas import BlocItem, ChatResponse, HistoryMessage, QAItem, TarifM2Item
 
-# Opus 4.8 : meilleure compréhension du français et réponses les plus précises.
+# Modèle par défaut
 MODEL = "claude-opus-4-8"
 # Derniers tours de conversation conservés pour le contexte.
 MAX_HISTORY = 10
 # Longueur maximale d'un libellé de bouton (sécurité d'affichage).
 MAX_BUTTON_LEN = 48
-# Timeout court et un seul retry : en cas d'échec le front bascule sur le
-# matching local — mieux vaut échouer vite que bloquer le widget (défaut SDK : 10 min).
+# Échec rapide : le front bascule sur le matching local
 TIMEOUT_SECONDS = 30.0
 MAX_RETRIES = 1
-# Cache applicatif des réponses du chat : même question + même base + même
-# historique → même réponse, sans rappeler l'API (latence et coût).
+# Cache des réponses du chat
 CACHE_TTL_SECONDS = 600.0
 CACHE_MAX_ENTRIES = 256
 
@@ -37,8 +35,7 @@ _REPLY_SCHEMA = {
 }
 
 
-# Levée quand l'IA ne peut pas répondre (clé absente, erreur API) ; l'appelant
-# bascule alors sur le matching local côté front.
+# L'IA ne peut pas répondre (clé absente ou erreur API).
 class LLMUnavailable(RuntimeError):
     pass
 
@@ -62,10 +59,7 @@ def _client() -> Anthropic:
     return _cached_client
 
 
-# Transforme l'historique + le message courant en messages API.
-# limit=None → historique complet : l'EXTRACTION doit voir toute la conversation
-# (la surface annoncée au 1er tour ne doit pas sortir de la fenêtre) ; seule la
-# réponse conversationnelle est bornée aux derniers tours.
+# Construit les messages API ; limit=None garde tout l'historique.
 def _conversation(
     history: list[HistoryMessage], message: str, *, limit: int | None = MAX_HISTORY
 ) -> list[dict]:
@@ -75,8 +69,7 @@ def _conversation(
     return messages
 
 
-# Appel structuré partagé (réponse chat et extraction) : sortie JSON garantie par
-# le schéma, prompt système mis en cache, erreurs API converties en LLMUnavailable.
+# Appel LLM à sortie JSON structurée.
 def _structured_call(
     *,
     system: str,
@@ -277,8 +270,7 @@ def clean_buttons(buttons: list[str]) -> list[str]:
     return out
 
 
-# Une réponse qui demande les coordonnées attend une saisie libre : le LLM y glisse
-# sinon de faux prénoms / emails / numéros en boutons.
+# Demande de coordonnées : pas de boutons de suggestion
 _ASKS_CONTACT = re.compile(r"coordonn|e-?mail|t[ée]l[ée]phone|pr[ée]nom|votre nom", re.IGNORECASE)
 _PERSONAL_DATA = re.compile(r"@|\d[\d .()+-]{5,}")
 

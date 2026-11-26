@@ -11,10 +11,7 @@ type Props = {
   to?: string;
 };
 
-// Rend les séparateurs de milliers sécables pour que les gros montants coupent
-// proprement aux frontières de groupes (« 13 / 714,00 € ») plutôt qu'en plein
-// chiffre. U+202F (espace fine insécable, séparateur de milliers fr-FR) → espace
-// normale sécable ; l'espace avant le symbole monétaire (U+00A0) reste intacte.
+// Rend les espaces de milliers sécables pour couper proprement les gros montants.
 function breakableNumber(value: string): string {
   return value.replace(/\u202F/g, ' ');
 }

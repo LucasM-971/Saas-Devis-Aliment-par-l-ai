@@ -1,10 +1,6 @@
 @import 'tailwindcss';
 
-/* =============================================================================
-   Design system Devis AI — « Clarté opérationnelle calme »
-   Canvas slate clair, accent indigo de confiance, couleurs réservées aux
-   statuts et actions. Pensé pour de longues sessions B2B (faible fatigue).
-   ============================================================================= */
+/** Design system : fond slate clair, accent indigo */
 @theme {
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
@@ -84,11 +80,7 @@
   }
 }
 
-/* =============================================================================
-   Animations — légères et professionnelles
-   Entrée au chargement (hero), révélation au scroll, micro-interactions.
-   Tout est désactivé si l'utilisateur préfère réduire les animations.
-   ============================================================================= */
+/** Animations (désactivées si prefers-reduced-motion) */
 @layer utilities {
   @keyframes fade-in-up {
     from {

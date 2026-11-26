@@ -1,5 +1,4 @@
-/* Client HTTP du widget Devis AI : configuration publique, messages, devis.
-   Aucun état, aucune dépendance — juste des appels fetch vers l'API. */
+/** Client HTTP du widget. */
 
 export function createApi(baseUrl) {
   const base = String(baseUrl || '').replace(/\/+$/, '');

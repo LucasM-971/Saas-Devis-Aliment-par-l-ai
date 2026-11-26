@@ -3,8 +3,7 @@ import { Bot, Loader2, Send } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 import type { ChatMsg, QuoteResult } from '@/lib/chat-engine';
 
-// Zone de conversation réutilisable (liste des messages + saisie). Le cadre et
-// l'en-tête sont gérés par le parent (carte d'aperçu ou page plein écran).
+// Liste des messages + saisie.
 export function ChatThread({
   messages,
   busy,

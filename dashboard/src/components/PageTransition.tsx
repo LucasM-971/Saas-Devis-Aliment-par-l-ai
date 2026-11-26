@@ -1,11 +1,7 @@
 import { type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 
-/**
- * Rejoue une animation d'entrée légère à chaque changement de page.
- * La clé sur le pathname force le remount du contenu → l'animation se relance.
- * Désactivée automatiquement via `prefers-reduced-motion` (cf. index.css).
- */
+/** Animation d'entrée à chaque changement de page. */
 export function PageTransition({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
 

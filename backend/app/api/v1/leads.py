@@ -33,8 +33,7 @@ def list_leads(db: DbSession, membership: ActiveMembership) -> list[LeadOut]:
     return [_serialize(lead) for lead in leads]
 
 
-# Convertit un prospect en devis brouillon (pré-rempli avec ses coordonnées,
-# sans ligne : l'artisan chiffre ensuite dans l'éditeur). Même quota que POST /quotes.
+# Convertit un prospect en devis brouillon vide (même quota que POST /quotes).
 @router.post("/{lead_id}/convert", response_model=LeadOut)
 def convert_lead(lead_id: int, db: DbSession, membership: ActiveMembership) -> LeadOut:
     require_writer(membership)

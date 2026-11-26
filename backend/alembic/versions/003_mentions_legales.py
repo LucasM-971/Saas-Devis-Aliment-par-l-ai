@@ -1,9 +1,5 @@
 """mentions legales entreprise
 
-Ajoute les champs de mentions légales françaises sur les entreprises
-(identité de l'émetteur, TVA, assurance décennale, médiation) affichés sur les
-devis PDF. Tous nullables : rétro-compatibles avec les entreprises existantes.
-
 Revision ID: a1c7d9e2f3b4
 Revises: 5b134c13507e
 Create Date: 2026-07-10 18:20:00.000000

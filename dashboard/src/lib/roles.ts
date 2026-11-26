@@ -14,6 +14,5 @@ export function canManageMembers(role: Role | undefined): boolean {
   return role === 'owner' || role === 'admin';
 }
 
-// Rôles attribuables depuis la gestion d'équipe. La propriété (owner) se transfère
-// via une action dédiée : on ne la propose donc pas ici.
+// Rôles attribuables (owner exclu).
 export const ASSIGNABLE_ROLES: Role[] = ['admin', 'member', 'viewer'];

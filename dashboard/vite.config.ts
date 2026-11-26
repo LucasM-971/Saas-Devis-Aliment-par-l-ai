@@ -15,9 +15,7 @@ export default defineConfig({
   server: {
     // PORT est injecté par les previews (agents) ; 5173 sinon.
     port: Number(process.env.PORT) || 5173,
-    // Proxy /api → backend (docker compose : API_PROXY_TARGET=http://backend:8000,
-    // VITE_API_URL vide). Les appels restent same-origin : pas de CORS, et pas
-    // d'upgrade HTTPS forcé par Safari sur un autre port de localhost.
+    // Proxy /api vers le backend (même origine)
     proxy: {
       '/api': process.env.API_PROXY_TARGET || 'http://localhost:8000',
     },

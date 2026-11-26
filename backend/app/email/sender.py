@@ -1,8 +1,4 @@
-"""Envoi d'e-mails : SMTP en production, console en développement.
-
-Mode « console » (défaut) : le contenu est journalisé, aucun réseau — les
-parcours qui envoient des e-mails restent testables sans serveur SMTP.
-"""
+"""Envoi d'e-mails : SMTP en prod, console en dev."""
 
 import logging
 import smtplib
@@ -17,8 +13,7 @@ from app.config import settings
 Attachment = tuple[str, bytes, str]
 
 logger = logging.getLogger("devis_ai.email")
-# Handler dédié : les e-mails « console » restent visibles même quand la
-# configuration de logging du serveur (uvicorn) ignore les loggers applicatifs.
+# Handler dédié pour rester visible sous uvicorn
 if not logger.handlers:
     _handler = logging.StreamHandler()
     _handler.setFormatter(logging.Formatter("%(levelname)s %(name)s | %(message)s"))
@@ -38,9 +33,7 @@ def render_template(name: str, **context: str) -> str:
     return html.format(**context)
 
 
-# Neutralise les retours à la ligne dans une valeur d'en-tête (To, Subject…) :
-# un \r\n injecté dans un nom d'entreprise ou une adresse permettrait sinon
-# d'ajouter des en-têtes SMTP arbitraires (Bcc, etc.).
+# Supprime les retours à la ligne (injection d'en-têtes).
 def _header_value(value: str) -> str:
     return " ".join(str(value).splitlines())
 
@@ -68,16 +61,14 @@ def send_email(
     message["To"] = to
     message["Subject"] = subject
     message.attach(MIMEText(html, "html", "utf-8"))
-    # MIMEApplication force le type principal application/* — suffisant ici
-    # (seul le PDF du devis transite par cette voie aujourd'hui).
+    # Seul le PDF passe ici
     for name, content, mimetype in attachments or []:
         subtype = mimetype.partition("/")[2] or "octet-stream"
         part = MIMEApplication(content, _subtype=subtype)
         part.add_header("Content-Disposition", "attachment", filename=_header_value(name))
         message.attach(part)
 
-    # Timeout court : l'envoi est SYNCHRONE dans la requête HTTP (volume pilote) —
-    # mieux vaut une erreur nette et un réessai qu'un artisan qui fixe un spinner.
+    # Timeout court : envoi synchrone dans la requête
     with smtplib.SMTP(
         settings.smtp_host, settings.smtp_port, timeout=settings.smtp_timeout_seconds
     ) as server:

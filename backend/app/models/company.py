@@ -22,22 +22,18 @@ class Company(IdMixin, TimestampMixin, Base):
     contact_phone: Mapped[str | None] = mapped_column(String(30))
     # TVA par défaut en ratio (0.200 = 20 %), alignée sur le front.
     default_vat_rate: Mapped[Decimal] = mapped_column(Numeric(4, 3), default=Decimal("0.200"))
-    # Métier du bâtiment (pilote le catalogue et le wedge « 1 métier »).
+    # Métier du bâtiment (définit le catalogue)
     metier: Mapped[str | None] = mapped_column(String(30))
     plan: Mapped[str] = mapped_column(Enum(*PLANS), default="free")
     is_active: Mapped[bool] = mapped_column(default=True)
 
-    # ── Mentions légales françaises affichées sur les devis ──────────────────
-    # Ces champs alimentent les mentions obligatoires d'un devis BTP (identité de
-    # l'émetteur, TVA, assurance décennale, médiation). Tous facultatifs : chacun
-    # n'apparaît sur le PDF que s'il est renseigné.
+    # ── Mentions légales (facultatives) ──
     legal_form: Mapped[str | None] = mapped_column(String(60))  # SARL, SASU, auto-entrepreneur…
     share_capital: Mapped[str | None] = mapped_column(String(40))  # capital social (ex. « 5 000 € »)
     rcs_rm: Mapped[str | None] = mapped_column(String(120))  # immatriculation RCS ou RM (+ ville)
     ape_code: Mapped[str | None] = mapped_column(String(10))  # code APE / NAF
     vat_number: Mapped[str | None] = mapped_column(String(30))  # n° TVA intracommunautaire
-    # Franchise en base de TVA (art. 293 B du CGI) : impose la mention
-    # « TVA non applicable » et un devis sans TVA.
+    # Franchise en base de TVA (art. 293 B du CGI)
     vat_exempt: Mapped[bool] = mapped_column(default=False)
     # Assurance décennale (obligatoire pour les métiers du bâtiment, loi n° 2014-344).
     insurance_name: Mapped[str | None] = mapped_column(String(120))  # assureur

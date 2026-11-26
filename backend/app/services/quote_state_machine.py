@@ -1,7 +1,4 @@
-"""Machine à états des statuts de devis (fonction pure).
-
-Définit les transitions autorisées ; toute autre transition est refusée.
-"""
+"""Transitions autorisées entre statuts de devis."""
 
 # Transitions autorisées : statut courant -> statuts cibles possibles.
 ALLOWED_TRANSITIONS: dict[str, set[str]] = {

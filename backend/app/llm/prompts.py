@@ -3,8 +3,7 @@ from app.llm.schemas import BlocItem, CatalogItem, QAItem, ServiceRef, TarifM2It
 # Nombre maximum de boutons de suivi proposés sous une réponse.
 MAX_BUTTONS = 3
 
-# Boutons de fin de conversation : libellés reconnus tels quels par le front
-# (dashboard/src/lib/chat-engine.ts) — le premier déclenche l'envoi de la demande.
+# Boutons de fin reconnus par le front (chat-engine.ts)
 QUOTE_BUTTON = "Faire la demande de devis"
 INFO_BUTTON = "Plus de renseignements"
 

@@ -1,6 +1,4 @@
-"""Rendu du document devis : mentions légales conditionnelles, franchise 293 B,
-échappement HTML. Le rendu PDF binaire n'est testé que si WeasyPrint (et ses
-dépendances système) est installé."""
+"""Rendu du devis ; le PDF binaire n'est testé que si WeasyPrint est installé."""
 
 from decimal import Decimal
 

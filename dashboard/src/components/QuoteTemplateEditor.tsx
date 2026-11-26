@@ -11,8 +11,7 @@ import { buildQuotePdf, type PdfCompany } from '@/lib/quote-pdf';
 import { cn } from '@/lib/cn';
 import type { CanvasEl, QuoteTemplate } from '@/types';
 
-// Devis d'exemple : uniquement pour visualiser le rendu du modèle dans l'aperçu
-// (aucune donnée métier — les vrais devis viennent de l'API).
+// Devis fictif pour l'aperçu du modèle.
 const SAMPLE_QUOTE = {
   id: 'sample',
   reference: 'DEV-2026-0042',
@@ -64,8 +63,7 @@ type EditorTab = 'style' | 'layout';
 export function QuoteTemplateEditor() {
   const { activeMembership } = useAuth();
   const company = activeMembership?.company.name ?? 'Mon entreprise';
-  // Émetteur réel (identité + mentions légales) : l'aperçu montre exactement ce
-  // qui sera imprimé, à partir de la fiche entreprise (Réglages › Entreprise).
+  // Émetteur issu de la fiche entreprise
   const companyForPdf: PdfCompany = useMemo(
     () => activeMembership?.company ?? { name: company },
     [activeMembership, company],
@@ -78,8 +76,7 @@ export function QuoteTemplateEditor() {
         activeMembership.company.insuranceName ||
         activeMembership.company.vatNumber),
   );
-  // Gate premium : la personnalisation est réservée au plan Premium
-  // (le serveur refuse aussi le PATCH en plan gratuit).
+  // Personnalisation réservée au premium
   const isPremium = activeMembership?.company.plan === 'premium';
   const { data: savedTpl } = useApi<QuoteTemplate>('/api/v1/quote-templates');
 
@@ -113,8 +110,7 @@ export function QuoteTemplateEditor() {
 
   const onLayoutChange = (layout: CanvasEl[]) => set({ canvasLayout: layout });
 
-  // Importe une image de fond (papier à en-tête / modèle existant) ; refuse
-  // au-delà de ~4 Mo pour ne pas alourdir le devis stocké.
+  // Image de fond, 4 Mo max.
   const onBackground = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;

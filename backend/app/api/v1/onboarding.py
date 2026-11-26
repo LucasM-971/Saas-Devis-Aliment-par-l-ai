@@ -18,8 +18,7 @@ class OnboardingOut(BaseModel):
     complete: bool
 
 
-# Étapes d'activation du compte : tout à vrai = l'entreprise peut recevoir des
-# devis chiffrés depuis le chat. Alimente la checklist du tableau de bord.
+# Checklist d'activation du compte.
 @router.get("", response_model=OnboardingOut)
 def onboarding_status(db: DbSession, membership: ActiveMembership) -> OnboardingOut:
     company_id = membership.company_id

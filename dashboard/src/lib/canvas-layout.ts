@@ -40,8 +40,7 @@ export const DEFAULT_CANVAS_LAYOUT: CanvasEl[] = [
   { id: 'footer_text',     type: 'footer_text',     x: 40,  y: 812, w: 515, h: 16,  visible: true },
 ];
 
-// Complète une mise en page enregistrée avec les blocs apparus depuis
-// (ex. conditions, signature) pour que les anciens templates en profitent.
+// Ajoute les blocs manquants aux anciennes mises en page.
 export function withDefaultElements(layout: CanvasEl[]): CanvasEl[] {
   const present = new Set(layout.map((e) => e.type));
   const missing = DEFAULT_CANVAS_LAYOUT.filter(

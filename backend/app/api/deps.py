@@ -38,8 +38,7 @@ def get_current_user(
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
-# Entreprise active (isolation multi-tenant) : via l'en-tête X-Company-Id,
-# sinon la première entreprise de l'utilisateur. Vérifie l'appartenance.
+# Entreprise active : en-tête X-Company-Id, sinon la première de l'utilisateur.
 def get_active_membership(
     db: DbSession,
     current_user: CurrentUser,
@@ -57,8 +56,7 @@ def get_active_membership(
 ActiveMembership = Annotated[Membership, Depends(get_active_membership)]
 
 
-# Réserve une action aux propriétaires et administrateurs de l'entreprise active
-# (gestion de l'équipe : inviter, changer un rôle, retirer un membre).
+# Réservé aux owners et admins de l'entreprise active.
 def require_manager(membership: ActiveMembership) -> Membership:
     if membership.role not in ("owner", "admin"):
         raise HTTPException(

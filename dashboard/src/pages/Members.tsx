@@ -66,8 +66,7 @@ export default function Members() {
           <ul className="divide-y divide-slate-100">
             {members.map((member) => {
               const isSelf = !!user && member.email === user.email;
-              // La propriété et sa propre ligne sont protégées : on évite tout verrouillage
-              // accidentel de l'espace (perte du dernier propriétaire, auto-rétrogradation).
+              // Owner et sa propre ligne non modifiables
               const locked = member.role === 'owner' || isSelf;
               return (
                 <li
@@ -174,8 +173,7 @@ const ROLE_HINTS: Record<Role, string> = {
   viewer: 'Consultation seule, sans modification.',
 };
 
-// Modal d'invitation d'un coéquipier par e-mail (owner/admin). L'invitation part
-// par e-mail côté serveur ; la ligne « Invité » apparaît aussitôt dans la liste.
+// Modal d'invitation par e-mail.
 function InviteModal({
   open,
   onClose,
@@ -208,8 +206,7 @@ function InviteModal({
         email: trimmed,
         role,
       });
-      // Le back liste les invitations en attente avec un id préfixé « i » : on le
-      // reconstruit pour que la révocation / le changement de rôle ciblent la bonne route.
+      // Invitations préfixées « i »
       onInvited({ id: `i${inv.id}`, name: inv.email, email: inv.email, role: inv.role, status: 'invited' });
       onClose();
     } catch (e) {

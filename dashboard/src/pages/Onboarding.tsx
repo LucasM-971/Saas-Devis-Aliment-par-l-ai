@@ -17,9 +17,7 @@ import { newCompanySchema, type NewCompanyValues } from '@/lib/validation/settin
 
 const PLACEHOLDER_NAME = 'Mon entreprise';
 
-// Onboarding post-inscription : l'artisan choisit son métier (pré-remplit le
-// catalogue) puis renseigne son entreprise. Toutes les données sont persistées
-// en base via l'API (company.metier + price_items + infos entreprise).
+// Onboarding : choix du métier puis infos entreprise.
 export default function Onboarding() {
   const { user, activeMembership, refreshSession } = useAuth();
   const navigate = useNavigate();
@@ -75,8 +73,7 @@ export default function Onboarding() {
     }
   };
 
-  // Étape 2 : enregistre les infos entreprise puis bascule sur le tableau de bord.
-  // `full` inclut les champs optionnels ; sinon on ne pousse que le nom (requis).
+  // Étape 2 : enregistre l'entreprise ; `full` inclut les champs optionnels.
   const saveCompany = async (full: boolean) => {
     if (!(await trigger('name'))) return;
     setError('');

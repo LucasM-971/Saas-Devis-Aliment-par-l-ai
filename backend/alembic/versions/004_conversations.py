@@ -1,11 +1,4 @@
-"""conversations pilote : unicité par entreprise + instrumentation
-
-- session_uid unique GLOBALEMENT → unique PAR ENTREPRISE : le même navigateur
-  peut visiter deux artisans avec le même uid stocké ; l'ancien schéma levait
-  une IntegrityError (500) au moment exact où le prospect demandait son devis.
-- flow_state : position dans l'arbre de qualification (lot B, nullable).
-- last_activity_at : horodatage du dernier tour, sert à dériver les
-  conversations « abandonnées » (open + inactif > 24 h) sans job cron.
+"""conversations : session_uid unique par entreprise, flow_state, last_activity_at
 
 Revision ID: b2e4f6a8c0d1
 Revises: a1c7d9e2f3b4

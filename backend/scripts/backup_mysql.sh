@@ -1,8 +1,5 @@
 #!/bin/sh
-# Sauvegarde MySQL du pilote : dump compressé + rotation 14 jours.
-# Les transcripts de conversations sont la matière première des évals LLM —
-# les perdre, c'est perdre le pilote. Lancé quotidiennement par le service
-# « backup » de docker-compose.prod.yml (ou par cron : ./backup_mysql.sh).
+# Dump MySQL compressé, rotation 14 jours.
 set -e
 
 : "${MYSQL_HOST:=db}"

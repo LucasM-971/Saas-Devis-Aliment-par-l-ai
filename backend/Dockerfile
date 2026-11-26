@@ -1,8 +1,7 @@
-# Backend FastAPI — image du pilote (Alembic = source du schéma).
+# Image du backend FastAPI
 FROM python:3.13-slim
 
-# Dépendances système de WeasyPrint (rendu PDF du devis) : pango/cairo/harfbuzz,
-# plus curl pour le healthcheck compose et des fontes de base pour le PDF.
+# Dépendances système de WeasyPrint (PDF) + curl pour le healthcheck
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpango-1.0-0 \
     libpangoft2-1.0-0 \
@@ -19,8 +18,7 @@ WORKDIR /app
 # Alembic (env.py) et scripts.* importent le package "app" depuis /app.
 ENV PYTHONPATH=/app PYTHONUNBUFFERED=1
 
-# L'échec d'installation DOIT casser le build : une image construite sans ses
-# dépendances ne planterait qu'au démarrage, en production, chez l'artisan.
+# Une install ratée doit faire échouer le build
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 

@@ -691,8 +691,7 @@ function PreviewTab({
   prixM2: string;
   tarifs: TarifM2[];
 }) {
-  // companyPublicId volontairement absent : l'aperçu teste la BDC non sauvegardée
-  // via l'endpoint authentifié /widget/preview/message, pas la génération de devis.
+  // Sans companyPublicId : aperçu sur la BDC non sauvegardée
   const cfg = useMemo(
     () => ({ companyName, qas, blocs, prixM2: prixM2 || undefined, tarifs }),
     [companyName, qas, blocs, prixM2, tarifs],

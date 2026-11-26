@@ -28,8 +28,7 @@ class CompanyDetailOut(BaseModel):
     mediatorUrl: str | None = None
 
 
-# max_length aligné sur les colonnes MySQL : au-delà, l'écriture échouerait en
-# DataError (500) au lieu d'un 422 propre.
+# Longueurs alignées sur les colonnes
 class CompanyUpdateIn(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=150)
     siret: str | None = Field(default=None, max_length=20)

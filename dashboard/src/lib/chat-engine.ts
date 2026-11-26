@@ -1,12 +1,7 @@
-// Cœur de conversation partagé entre l'aperçu du dashboard et la page de chat
-// hébergée (/c/:publicId). Encapsule l'appel à l'API.
+// Logique de conversation partagée (aperçu dashboard et page hébergée).
 //
-// Deux modes, deux politiques d'échec :
-// - Page hébergée (companyPublicId) : le serveur persiste chaque tour et porte
-//   les métriques pilote — AUCUN repli local silencieux. Un échec API est
-//   montré au prospect avec un bouton « réessayer » (failedText / retry).
-// - Aperçu du dashboard (pas de public_id) : outil de debug de la base de
-//   connaissances — le matching local reste un secours acceptable.
+// Page hébergée : erreur affichée avec réessai.
+// Aperçu : repli sur le matching local.
 
 import { useCallback, useState } from 'react';
 import { api } from '@/lib/api';
@@ -52,9 +47,7 @@ export type ChatConfig = {
   companyPublicId?: string; // requis pour générer un devis
 };
 
-// Bornes alignées sur l'API publique (backend, llm/schemas.py) : au-delà le
-// serveur répond 422 — on tronque côté client pour qu'une conversation longue
-// ou un long collage ne fasse jamais échouer l'échange.
+// Limites de l'API publique (llm/schemas.py)
 export const MAX_MESSAGE_LEN = 2000;
 export const MAX_HISTORY_ITEMS = 60;
 
@@ -119,10 +112,7 @@ type QuoteApiResponse = {
 export function useChatConversation(cfg: ChatConfig) {
   const [messages, setMessages] = useState<ChatMsg[]>(() => [botGreeting(cfg)]);
   const [busy, setBusy] = useState(false);
-  // Identifiant de session généré CÔTÉ CLIENT dès le départ : si le tout
-  // premier envoi échoue, le réessai porte le même uid — le serveur déduplique
-  // au lieu de créer une conversation fantôme. Le serveur peut renvoyer le
-  // sien (ancien contrat) : on l'adopte alors.
+  // uid de session généré côté client pour dédupliquer les réessais
   const [sessionUid, setSessionUid] = useState<string>(() => crypto.randomUUID());
   // Dernier message dont l'envoi a échoué (page hébergée) : proposé au réessai.
   const [failedText, setFailedText] = useState<string | null>(null);
@@ -142,10 +132,7 @@ export function useChatConversation(cfg: ChatConfig) {
 
       const loadingId = uid();
 
-      // Historique capturé avant d'ajouter le nouveau message. Au réessai, le
-      // message utilisateur est déjà affiché : on l'écarte de l'historique
-      // (il repart comme message courant) et on ne le ré-affiche pas. Borné aux
-      // limites de l'API : une conversation longue ne doit jamais finir en 422.
+      // Historique avant ajout du message, sans le doubler au réessai
       let historyMsgs = messages.filter((m) => !m.loading);
       if (opts?.isRetry) {
         const last = historyMsgs[historyMsgs.length - 1];
@@ -171,9 +158,7 @@ export function useChatConversation(cfg: ChatConfig) {
       let reply: ChatMsg;
 
       try {
-        // Page hébergée : endpoint public, la KB est lue en base via le public_id.
-        // Aperçu du dashboard (pas de public_id) : endpoint authentifié qui teste
-        // la KB non sauvegardée transportée dans le corps.
+        // Page hébergée : endpoint public ; aperçu : endpoint authentifié
         if (cfg.companyPublicId) {
           const result = await api.post<MessageApiResponse>('/api/v1/chat/message', {
             company_public_id: cfg.companyPublicId,
@@ -198,8 +183,7 @@ export function useChatConversation(cfg: ChatConfig) {
         }
       } catch {
         if (cfg.companyPublicId) {
-          // Page hébergée : échec VISIBLE. Un repli local silencieux créerait
-          // des conversations fantômes invisibles du serveur (métriques mortes).
+          // Page hébergée : pas de repli local
           setMessages((p) => p.filter((m) => m.id !== loadingId));
           setFailedText(trimmed);
           setBusy(false);
@@ -222,8 +206,7 @@ export function useChatConversation(cfg: ChatConfig) {
     void send(failedText, { isRetry: true });
   }, [failedText, send]);
 
-  // Génère un devis chiffré à partir de la conversation (endpoint public /chat/quote).
-  // `label` : texte du bouton cliqué, affiché comme message du prospect.
+  // Génère un devis depuis la conversation ; `label` = bouton cliqué.
   const requestQuote = useCallback(async (label?: string) => {
     if (busy || !cfg.companyPublicId) return;
     setBusy(true);

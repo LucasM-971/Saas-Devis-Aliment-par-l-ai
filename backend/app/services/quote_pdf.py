@@ -1,13 +1,6 @@
-"""Document devis : rendu HTML unique + PDF (WeasyPrint).
+"""Rendu du devis en HTML puis PDF (WeasyPrint).
 
-C'est LE document contractuel envoyé au client — l'e-mail n'est qu'un message
-d'accompagnement. Une seule source de rendu (décision de revue) : si un montant
-apparaissait à la fois dans le corps du mail et dans le PDF, ils divergeraient
-un jour.
-
-Mentions légales françaises : chaque bloc n'apparaît que si les champs
-correspondants sont renseignés sur `Company` ; la franchise en base de TVA
-(art. 293 B du CGI) remplace la ligne de TVA par la mention obligatoire.
+Mentions légales affichées seulement si renseignées.
 """
 
 import html as html_lib
@@ -57,9 +50,7 @@ def _eur(value: Decimal | float) -> str:
     return f"{Decimal(value):.2f}".replace(".", ",") + " €"
 
 
-# Nombre « propre » : sans zéros de traîne (20.00 → 20 ; 5.50 → 5,5).
-# Le format :g est piégeux avec Decimal (notation exponentielle) — on nettoie
-# explicitement la forme décimale.
+# Supprime les zéros de fin (20.00 → 20, 5.50 → 5,5).
 def _fmt_qty(value: Decimal) -> str:
     text = f"{Decimal(value):f}"
     if "." in text:
@@ -133,8 +124,7 @@ def _totals_rows(quote: Quote, company: Company) -> str:
     return "".join(rows)
 
 
-# Mentions de bas de page : assurance décennale (obligatoire dans le bâtiment,
-# loi n° 2014-344) et médiateur de la consommation (B2C, art. L612-1).
+# Assurance décennale et médiateur de la consommation
 def _legal_mentions(company: Company) -> str:
     mentions: list[str] = []
     if company.insurance_name:

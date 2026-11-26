@@ -1,8 +1,4 @@
-"""Invitations d'équipe : envoi par e-mail, consultation et acceptation.
-
-Le lien d'invitation prouve la propriété de l'adresse : accepter crée le compte
-(ou vérifie le mot de passe d'un compte existant) puis ajoute l'appartenance.
-"""
+"""Invitations d'équipe : envoi, consultation, acceptation."""
 
 import hashlib
 import html
@@ -32,8 +28,7 @@ INVITABLE_ROLES = ("admin", "member", "viewer")
 
 ROLE_LABELS = {"admin": "Administrateur", "member": "Membre", "viewer": "Lecteur"}
 
-# Endpoints publics (lookup / accept) : même limiteur que l'authentification,
-# pour freiner l'énumération de jetons et le brute-force de mot de passe.
+# Rate limit anti brute-force sur les endpoints publics
 _auth_rate_limit = Depends(rate_limited(AUTH_LIMITER))
 
 
@@ -195,8 +190,7 @@ def lookup(token: str, db: DbSession) -> LookupOut:
     )
 
 
-# Accepte l'invitation : crée le compte (ou vérifie le mot de passe existant),
-# ajoute l'appartenance et ouvre la session.
+# Accepte l'invitation : crée ou vérifie le compte, ajoute le membre.
 @router.post("/accept", response_model=TokenOut, dependencies=[_auth_rate_limit])
 def accept(payload: AcceptIn, db: DbSession) -> TokenOut:
     invitation = _get_valid_invitation(db, payload.token)

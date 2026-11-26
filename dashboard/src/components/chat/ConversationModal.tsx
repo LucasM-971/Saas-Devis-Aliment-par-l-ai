@@ -6,8 +6,7 @@ import { useApi } from '@/hooks/useApi';
 import { formatDate } from '@/lib/format';
 import type { Conversation } from '@/types';
 
-// Fil de discussion en lecture seule : la transcription du chat qu'un client a eu
-// avec le chatbot, rattachée à un devis ou un prospect.
+// Transcript du chat en lecture seule.
 export function ConversationModal({
   conversationId,
   title = 'Conversation',

@@ -110,8 +110,7 @@ export type Quote = {
   conversationId?: string; // chat qui a généré ce devis (transcription consultable)
 };
 
-// Brouillon extrait d'un fichier importé (PDF/DOCX/texte), renvoyé par
-// POST /api/v1/quotes/import. Non persisté : il pré-remplit le formulaire.
+// Brouillon renvoyé par POST /api/v1/quotes/import (non enregistré).
 export type QuoteDraft = {
   clientName: string;
   clientEmail?: string | null;

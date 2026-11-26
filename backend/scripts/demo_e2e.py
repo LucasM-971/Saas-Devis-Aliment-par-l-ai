@@ -1,13 +1,7 @@
-"""Démo reproductible du flux pilote complet :
-chat persisté par tour → devis brouillon idempotent → édition → envoi (PDF).
+"""Démo du flux complet : chat → devis brouillon → édition → envoi PDF.
 
-Usage : depuis backend/, avec le venv actif et la base seedée :
-    python -m scripts.demo_e2e
-
-Sans ANTHROPIC_API_KEY, le LLM (réponses + extraction) est simulé ; avec une
-clé, il est réel. Sans WeasyPrint installé, le rendu PDF est simulé. Tout le
-reste (persistance des tours, chiffrage, idempotence, statuts d'envoi) passe
-par les vrais endpoints et la vraie base de développement.
+Usage (depuis backend/) : python -m scripts.demo_e2e
+LLM et PDF simulés si ANTHROPIC_API_KEY ou WeasyPrint absents.
 """
 
 import uuid
@@ -92,7 +86,7 @@ def run() -> None:
     pdf_real = _stub_pdf_if_needed()
     print(f"• Rendu PDF : {'WeasyPrint réel' if pdf_real else 'simulé (WeasyPrint absent)'}")
 
-    # 0. Le prospect discute : chaque tour est PERSISTÉ (métriques pilote).
+    # 0. Le prospect discute : chaque tour est enregistré
     session_uid = str(uuid.uuid4())
     for message in ["Repeindre mon séjour.", "42 m², à Paris 11e."]:
         r = client.post(
@@ -163,8 +157,7 @@ def run() -> None:
         f"{len(updated['lines'])} lignes, remise {updated['discountValue']} %"
     )
 
-    # 4. Le devis édité est bien persisté en base, toujours en brouillon —
-    #    et le brouillon retouché est désormais PROTÉGÉ du chat.
+    # 4. Devis édité enregistré, toujours brouillon et protégé du chat
     db = SessionLocal()
     try:
         quote = db.scalar(select(Quote).where(Quote.reference == reference))

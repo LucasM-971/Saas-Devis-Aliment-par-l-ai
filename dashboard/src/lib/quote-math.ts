@@ -17,8 +17,7 @@ export type QuoteTotals = {
   total: number;
 };
 
-// Remise en euros à partir du HT brut. Bornée à [0, subtotal] : une remise
-// ne rend jamais un devis négatif. Miroir de backend/services/pricing_engine.
+// Remise bornée à [0, subtotal] (comme pricing_engine).
 export function computeDiscount(
   subtotal: number,
   discountType: Quote['discountType'],

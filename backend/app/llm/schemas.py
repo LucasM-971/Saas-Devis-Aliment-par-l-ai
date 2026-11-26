@@ -2,9 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-# Bornes serveur de la surface publique : le rate limit borne la FRÉQUENCE,
-# ceci borne la TAILLE (coût LLM facturable + écritures JSON en base).
-# La machine à états (lot B) raccourcira encore les tours réels.
+# Limites de taille de la surface publique
 MAX_HISTORY_MESSAGES = 60
 MAX_MESSAGE_CHARS = 2000
 
@@ -35,19 +33,16 @@ class HistoryMessage(BaseModel):
     content: str = Field(max_length=MAX_MESSAGE_CHARS)
 
 
-# Corps de la requête envoyée par le widget / la page hébergée : l'entreprise est
-# identifiée par son public_id, la base de connaissances est lue en base.
+# Requête du widget / page hébergée.
 class ChatRequest(BaseModel):
     company_public_id: str = Field(max_length=36)
     message: str = Field(min_length=1, max_length=MAX_MESSAGE_CHARS)
     history: list[HistoryMessage] = Field(default_factory=list, max_length=MAX_HISTORY_MESSAGES)
-    # Identifiant de session côté navigateur : permet la persistance par tour.
-    # Absent (ancien widget) → le serveur en génère un et le renvoie.
+    # Absent → généré par le serveur
     session_uid: str | None = Field(default=None, max_length=36)
 
 
-# Corps de l'aperçu du dashboard (authentifié) : teste une base de connaissances
-# non sauvegardée, transportée dans le corps.
+# Requête de l'aperçu du dashboard.
 class ChatPreviewRequest(BaseModel):
     message: str = Field(min_length=1, max_length=MAX_MESSAGE_CHARS)
     qas: list[QAItem] = Field(default_factory=list)
@@ -61,13 +56,11 @@ class ChatPreviewRequest(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
     buttons: list[str] = Field(default_factory=list)
-    # Renvoyé par /chat/message pour que le client adopte l'uid de session
-    # (null sur l'aperçu du dashboard, qui ne persiste rien).
+    # null pour l'aperçu
     session_uid: str | None = None
 
 
-# ─── Extraction structurée (qualification → devis) ───────────────────────────
-# Le LLM ne fait QUE de l'extraction : il n'invente ni prix ni total.
+# ─── Extraction structurée ───
 
 
 # Un service proposé par l'entreprise (cible d'éligibilité).

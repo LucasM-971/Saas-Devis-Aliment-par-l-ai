@@ -1,5 +1,4 @@
-"""Correspondance entre les statuts stockés (ENUM SQL, anglais) et les statuts
-exposés par l'API / utilisés par le front (français)."""
+"""Statuts stockés (anglais) ↔ statuts de l'API (français)."""
 
 EN_TO_FR = {
     "draft": "brouillon",

@@ -1,8 +1,4 @@
-"""Import de devis : parsing heuristique + endpoint /quotes/import.
-
-Le LLM n'est pas configuré en test (clé absente) → l'analyse heuristique
-déterministe est exercée de bout en bout.
-"""
+"""Import de devis : parsing heuristique (sans LLM) + endpoint /quotes/import."""
 
 import io
 

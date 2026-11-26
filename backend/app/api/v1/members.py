@@ -22,8 +22,7 @@ def _invitation_out(inv: Invitation) -> MemberOut:
     return MemberOut(id=f"i{inv.id}", name=inv.email, email=inv.email, role=inv.role, status="invited")
 
 
-# Extrait l'identifiant numérique d'un id préfixé (« m12 » → 12), ou -1 si le
-# préfixe attendu n'est pas respecté (id malformé → 404 en aval).
+# « m12 » → 12, ou -1 si le préfixe ne correspond pas.
 def _raw_id(member_id: str, prefix: str) -> int:
     if not member_id.startswith(prefix):
         return -1
@@ -33,7 +32,7 @@ def _raw_id(member_id: str, prefix: str) -> int:
         return -1
 
 
-# Retrouve une adhésion appartenant à l'entreprise active (sinon 404, isolation multi-tenant).
+# Adhésion de l'entreprise active, sinon 404.
 def _get_membership(db: DbSession, member_id: str, company_id: int) -> Membership:
     membership = db.get(Membership, _raw_id(member_id, "m"))
     if membership is None or membership.company_id != company_id:
@@ -85,8 +84,7 @@ def list_members(db: DbSession, membership: ActiveMembership) -> list[MemberOut]
     return members
 
 
-# Modifie le rôle d'un membre (id « m… ») ou d'une invitation en attente (id « i… »).
-# Réservé aux propriétaires / administrateurs.
+# Change le rôle d'un membre (m…) ou d'une invitation (i…).
 @router.patch("/{member_id}", response_model=MemberOut)
 def update_member(
     member_id: str, payload: MemberUpdate, db: DbSession, manager: ManagerMembership
@@ -101,8 +99,7 @@ def update_member(
         return _invitation_out(invitation)
 
     membership = _get_membership(db, member_id, company_id)
-    # Seul un propriétaire peut modifier un autre propriétaire : un admin ne
-    # doit pas pouvoir rétrograder ou évincer plus privilégié que lui.
+    # Seul un owner peut modifier un owner
     if membership.role == "owner" and manager.role != "owner":
         raise HTTPException(
             status.HTTP_403_FORBIDDEN, "Seul un propriétaire peut modifier un propriétaire"
@@ -119,8 +116,7 @@ def update_member(
     return _member_out(membership, user)
 
 
-# Retire un membre de l'entreprise, ou révoque une invitation en attente.
-# Réservé aux propriétaires / administrateurs.
+# Retire un membre ou révoque une invitation.
 @router.delete("/{member_id}", status_code=status.HTTP_204_NO_CONTENT)
 def remove_member(member_id: str, db: DbSession, manager: ManagerMembership) -> None:
     company_id = manager.company_id

@@ -1,6 +1,4 @@
-// Métiers du bâtiment supportés + catalogue de prestations types par métier.
-// Sert à pré-configurer le dashboard : à la sélection d'un métier, l'entreprise
-// récupère une grille tarifaire prête à l'emploi (unités et prix indicatifs).
+// Métiers supportés et prestations types par métier.
 
 import {
   DoorOpen,

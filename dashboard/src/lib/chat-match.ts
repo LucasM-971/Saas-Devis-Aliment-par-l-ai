@@ -1,6 +1,4 @@
-// Moteur de matching local de l'assistant (sans IA externe).
-// Sert de logique de secours côté front quand l'API est indisponible,
-// et de source de vérité pour le port Python du backend.
+// Matching local de l'assistant, utilisé si l'API est indisponible.
 
 export type QA = { id: string; question: string; answer: string };
 
@@ -27,8 +25,7 @@ export type MatchResult = {
 // Seuils de déclenchement (un bloc à boutons est plus spécifique → seuil plus haut).
 export const BLOC_THRESHOLD = 0.15;
 export const QA_THRESHOLD = 0.12;
-// Avance accordée aux blocs à boutons : ils gagnent les égalités, mais pas
-// contre une Q&R nettement plus pertinente.
+// Bonus des blocs à boutons en cas d'égalité
 export const BLOC_PRIORITY_MARGIN = 0.1;
 
 const STOPWORDS = new Set([
@@ -42,8 +39,7 @@ const STOPWORDS = new Set([
   'cette', 'ces', 'aussi', 'alors', 'bien', 'tout', 'tres', 'meme', 'non',
 ]);
 
-// Synonymes métier (BTP) ramenés à une forme canonique pour rapprocher
-// le vocabulaire du prospect de celui des Q&R configurées.
+// Synonymes métier vers une forme canonique
 const SYNONYM_GROUPS: Record<string, string[]> = {
   prix: ['tarif', 'tarifs', 'cout', 'couts', 'coute', 'coutent', 'montant', 'montants', 'facture', 'factures', 'budget', 'euro', 'euros'],
   devis: ['estimation', 'estimations', 'chiffrage', 'chiffrages', 'estimer', 'estimatif'],
@@ -92,8 +88,7 @@ export function shorten(s: string, max = 42): string {
   return s.length > max ? s.slice(0, max - 1) + '…' : s;
 }
 
-// Libellé présenté au prospect pour déclencher un bloc : le label configuré,
-// sinon un repli lisible sur les mots-clés du trigger (compat données existantes).
+// Libellé du bloc, sinon ses mots-clés.
 export function blocLabel(b: MessageBloc): string {
   return b.label?.trim() || shorten(b.trigger, 38);
 }

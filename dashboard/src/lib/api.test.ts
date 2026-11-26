@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { extractDetail } from './api';
 
-// Garde-fou anti-régression : le champ `detail` d'une erreur FastAPI doit
-// toujours donner un message lisible (jamais « [object Object] »).
+// `detail` doit toujours donner un message lisible
 describe('extractDetail', () => {
   it('renvoie tel quel le detail chaîne (HTTPException)', () => {
     expect(extractDetail('Cette personne fait déjà partie de l’équipe')).toBe(

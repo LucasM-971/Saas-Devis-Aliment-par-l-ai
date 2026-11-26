@@ -16,8 +16,7 @@ const FEATURE_LABELS: Record<string, string> = {
   multi_company: 'Plusieurs espaces entreprise',
 };
 
-// Gestion réelle de l'abonnement de l'entreprise active (plan, quota, changement).
-// Branché sur /api/v1/billing/plan ; le changement est réservé au propriétaire.
+// Abonnement de l'entreprise active ; modifiable par l'owner.
 export function PlanManager() {
   const { activeMembership, refreshSession } = useAuth();
   const { data: plan, loading, error, refetch } = useApi<PlanInfo>('/api/v1/billing/plan');

@@ -12,7 +12,7 @@ class KnowledgeBase(NamedTuple):
     tarifs_m2: list[TarifM2Item]
 
 
-# Reconstruit la base de connaissances (qas / blocs / prix_m2 / tarifs_m2) depuis la colonne JSON.
+# Reconstruit la base de connaissances depuis la colonne JSON.
 def kb_from_config(config: dict | None) -> KnowledgeBase:
     config = config or {}
     qas = [QAItem.model_validate(q) for q in config.get("qas", [])]

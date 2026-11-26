@@ -3,8 +3,7 @@ from pydantic import BaseModel, EmailStr, Field
 from app.schemas.company import CompanyDetailOut
 
 
-# max_length aligné sur les colonnes MySQL : une valeur plus longue ferait
-# échouer l'INSERT en DataError (500) au lieu d'un 422 propre.
+# Longueurs alignées sur les colonnes
 class RegisterIn(BaseModel):
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=8, max_length=128)

@@ -1,7 +1,6 @@
 import type { CSSProperties } from 'react';
 
-// Décline la couleur d'accent en variables CSS (fond doux + bordure) consommées
-// par le fil. À poser en style inline sur un conteneur englobant.
+// Variables CSS de la couleur d'accent.
 export function accentStyle(color: string): CSSProperties {
   return {
     '--chat-accent': color,

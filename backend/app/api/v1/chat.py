@@ -47,16 +47,8 @@ from app.services.widget_kb import kb_from_config
 
 router = APIRouter(prefix="/api/v1/chat", tags=["chat"])
 
-# Flux public « conversation → devis » (surface pilote) :
-#
-#   POST /chat/message ──> Conversation (open) : un tour = une écriture
-#        │  ...n tours (transcript horodaté, last_activity_at)
-#        ▼
-#   POST /chat/quote ────> transcript EN BASE → extraction LLM → chiffrage
-#        │                 déterministe (grille + TVA entreprise/arbre)
-#        ├── chiffrable ──> Quote draft : 1 conversation = 1 brouillon vivant
-#        │                  (retour idempotent si engagé ou retouché artisan)
-#        └── sinon ───────> Lead (motif) ; Conversation → completed dans les 2 cas
+# POST /chat/message → enregistre chaque tour
+# POST /chat/quote   → extraction LLM → chiffrage → devis brouillon, sinon lead
 
 # Message affiché au prospect selon le motif d'échec du chiffrage.
 _LEAD_MESSAGES = {
@@ -72,8 +64,7 @@ _LEAD_MESSAGES = {
         "Il nous manque quelques informations pour chiffrer votre projet. "
         "Un conseiller vous recontactera pour finaliser votre devis."
     ),
-    # Quota mensuel du plan gratuit atteint : la demande est conservée en lead,
-    # le prospect n'est pas exposé à la raison technique.
+    # Quota gratuit atteint : on garde la demande en lead
     "quota_exceeded": (
         "Votre demande a bien été enregistrée. "
         "Un conseiller vous recontactera rapidement avec votre devis."
@@ -95,10 +86,7 @@ def _get_company(db: DbSession, public_id: str) -> Company:
     return company
 
 
-# Endpoint public : réponse conversationnelle du bot. L'entreprise est identifiée
-# par son public_id et la base de connaissances est lue en base — le corps ne
-# transporte que le message et l'historique (pas de prompt arbitraire possible).
-# Rate-limité par IP : chaque message coûte un appel LLM.
+# Public : réponse du bot. La base de connaissances est lue en base, rate-limité par IP.
 @router.post(
     "/message",
     response_model=ChatResponse,
@@ -112,9 +100,7 @@ def chat_message(payload: ChatRequest, db: DbSession) -> ChatResponse:
     )
     qas, blocs, prix_m2, tarifs_m2 = kb_from_config(settings.config if settings else None)
 
-    # Le tour utilisateur est persisté AVANT l'appel LLM : un échec IA (503)
-    # laisse quand même la trace de la demande (métriques pilote + reprise).
-    # Un réessai du même message (échec côté client) ne duplique pas le tour.
+    # Tour enregistré avant l'appel LLM, sans doublon en cas de réessai
     conversation = _get_or_create_conversation(db, company.id, payload.session_uid)
     transcript = conversation.transcript or []
     is_replay = bool(
@@ -147,8 +133,7 @@ def chat_message(payload: ChatRequest, db: DbSession) -> ChatResponse:
     )
 
 
-# Endpoint public : configuration du chatbot (apparence + base de connaissances).
-# Consommé par le widget embarqué sur un site tiers et par la page hébergée.
+# Public : config du chatbot pour le widget et la page hébergée.
 @router.get("/config/{company_public_id}", response_model=WidgetConfigOut)
 def chat_config(company_public_id: str, db: DbSession) -> WidgetConfigOut:
     company = _get_company(db, company_public_id)
@@ -170,8 +155,7 @@ def chat_config(company_public_id: str, db: DbSession) -> WidgetConfigOut:
     )
 
 
-# Endpoint public : transforme une conversation en devis chiffré (ou en lead).
-# L'entreprise est identifiée par son public_id ; la grille et l'éligibilité sont lues en base.
+# Public : transforme une conversation en devis chiffré ou en lead.
 @router.post(
     "/quote",
     response_model=ChatQuoteResponse,
@@ -181,9 +165,7 @@ def chat_quote(payload: QuoteFromChatRequest, db: DbSession) -> ChatQuoteRespons
     company = _get_company(db, payload.company_public_id)
     conversation = _get_or_create_conversation(db, company.id, payload.session_uid)
 
-    # Idempotence : 1 conversation = 1 brouillon vivant. Un devis engagé
-    # (envoyé, accepté…) ou déjà retouché par l'artisan n'est JAMAIS écrasé
-    # par un nouveau tour de chat : on le renvoie tel quel.
+    # Un devis engagé ou retouché par l'artisan n'est jamais écrasé
     existing = db.scalar(
         select(Quote)
         .where(Quote.conversation_id == conversation.id)
@@ -240,8 +222,7 @@ def chat_quote(payload: QuoteFromChatRequest, db: DbSession) -> ChatQuoteRespons
 
     _clamp_customer(extraction)
 
-    # Coordonnées obligatoires : sans prénom, nom, téléphone, email et code
-    # postal, rien n'est enregistré — le prospect est invité à les compléter.
+    # Coordonnées obligatoires avant tout enregistrement
     missing = _missing_contact_fields(extraction)
     if missing:
         db.commit()
@@ -265,13 +246,11 @@ def chat_quote(payload: QuoteFromChatRequest, db: DbSession) -> ChatQuoteRespons
         ],
         supported_services=[s.slug for s in services],
         served_postal_codes=[z.postal_code for z in zones if z.postal_code],
-        # L'arbre de qualification passera tree_rate= ici (lot B) : le taux du
-        # chantier (10/20/5,5) prime alors sur le défaut de l'entreprise.
+        # TODO : taux de TVA du chantier issu de l'arbre de qualification
         tax_rate=applicable_tax_rate(company),
     )
 
-    # Gate premium : le quota ne s'applique qu'à la CRÉATION d'un devis —
-    # la mise à jour du brouillon existant de la conversation n'en consomme pas.
+    # Le quota ne compte que les créations de devis
     if (
         result.computation is not None
         and existing is None
@@ -326,9 +305,7 @@ def chat_quote(payload: QuoteFromChatRequest, db: DbSession) -> ChatQuoteRespons
 # ─── Persistance de la conversation (un tour = une écriture) ─────────────────
 
 
-# Retrouve la conversation de CETTE entreprise pour cet uid de session, sinon
-# la crée. L'unicité de session_uid est par entreprise : le même navigateur
-# visitant deux artisans obtient deux conversations distinctes (plus de 500).
+# Récupère ou crée la conversation (session_uid unique par entreprise).
 def _get_or_create_conversation(
     db: DbSession, company_id: int, session_uid: str | None
 ) -> Conversation:
@@ -351,8 +328,7 @@ def _get_or_create_conversation(
     return conversation
 
 
-# Ajoute des tours horodatés au transcript et rafraîchit last_activity_at.
-# La colonne JSON exige une réaffectation (pas de mutation en place).
+# Ajoute des tours horodatés (réaffectation requise pour la colonne JSON).
 def _append_turns(conversation: Conversation, turns: list[tuple[str, str]]) -> None:
     now = _utcnow()
     transcript = list(conversation.transcript or [])
@@ -363,11 +339,7 @@ def _append_turns(conversation: Conversation, turns: list[tuple[str, str]]) -> N
     conversation.last_activity_at = now
 
 
-# Source de vérité de l'extraction : le transcript EN BASE quand la conversation
-# a été persistée tour par tour ; sinon (ancien widget, tests) l'historique du
-# payload. payload.message reste TOUJOURS le message courant (une demande
-# enrichie ne doit pas être perdue) — on évite seulement de le dupliquer quand
-# il est déjà le dernier tour en base.
+# Historique pour l'extraction : transcript en base, sinon celui du payload.
 def _extraction_input(
     conversation: Conversation, payload: QuoteFromChatRequest
 ) -> tuple[list[HistoryMessage], str]:
@@ -381,9 +353,7 @@ def _extraction_input(
     return entries, payload.message
 
 
-# Fige la conversation au moment du chiffrage : transcript (complété si le
-# message courant n'est pas déjà le dernier tour utilisateur en base), données
-# extraites, statut completed.
+# Fige la conversation : transcript, données extraites, statut completed.
 def _finalize_conversation(
     db: DbSession,
     conversation: Conversation,
@@ -411,9 +381,7 @@ def _finalize_conversation(
 # ─── Helpers de chiffrage / persistance du devis ──────────────────────────────
 
 
-# Tronque une valeur extraite par le LLM à la taille de sa colonne : le modèle
-# recopie du texte de la conversation (contrôlé par le prospect) et une valeur
-# trop longue ferait échouer l'INSERT en DataError (500 sur endpoint public).
+# Tronque à la taille de la colonne pour éviter une DataError.
 def _clamp(value: str | None, limit: int) -> str | None:
     if value is None:
         return None
@@ -443,9 +411,7 @@ def _missing_contact_fields(extraction: ExtractionResult) -> list[str]:
     return missing
 
 
-# L'e-mail extrait devient le destinataire SMTP du devis : une troncature le
-# corromprait silencieusement (envoi à une mauvaise adresse). Invalide → None,
-# l'artisan le complètera dans l'éditeur.
+# E-mail invalide ou trop long → None (jamais tronqué).
 def _clean_email(value: str | None) -> str | None:
     if value is None or len(value) > 255:
         return None
@@ -497,8 +463,7 @@ def _create_lead(
     return lead
 
 
-# Applique le chiffrage généré sur le devis (création ou régénération du même
-# brouillon). Les coordonnées extraites complètent sans effacer l'existant.
+# Applique le chiffrage au devis sans effacer les coordonnées existantes.
 def _apply_generated(
     quote: Quote,
     services: list[Service],
@@ -552,8 +517,7 @@ def _create_quote(
     return quote
 
 
-# Snapshot « brouillon généré par l'IA » : la métrique pilote « envoyable sans
-# retouche » compare cette version à ce que l'artisan envoie réellement.
+# Version IA conservée pour la comparer à l'envoi final
 def _record_ai_version(db: DbSession, quote: Quote, result: BuildResult) -> None:
     computation = result.computation
     assert computation is not None
@@ -613,8 +577,7 @@ def _serialize_quote(quote: Quote, result: BuildResult) -> QuoteResult:
     )
 
 
-# Sérialise un devis existant depuis la base (retour idempotent : devis engagé
-# ou retouché par l'artisan, renvoyé sans recalcul).
+# Sérialise un devis existant sans le recalculer.
 def _quote_result_from_quote(quote: Quote) -> QuoteResult:
     discount = compute_discount(
         quote.subtotal, quote.discount_type, quote.discount_value or Decimal(0)

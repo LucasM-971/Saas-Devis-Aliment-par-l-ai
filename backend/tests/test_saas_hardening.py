@@ -1,5 +1,4 @@
-"""Durcissement SaaS : zones, onboarding, permissions, rate limit, audit,
-suppression de brouillon, envoi d'e-mail, réinitialisation de mot de passe."""
+"""Durcissement SaaS : zones, onboarding, permissions, rate limit, audit, e-mails."""
 
 import pytest
 from sqlalchemy import select
@@ -73,7 +72,7 @@ def test_choisir_un_metier_cree_le_service(client, db_sessionmaker):
     finally:
         db.close()
 
-    # Changer de métier bascule le service actif (wedge « 1 métier »).
+    # Changer de métier bascule le service actif
     client.patch("/api/v1/companies/current", json={"metier": "plomberie"}, headers=headers)
     db = db_sessionmaker()
     try:
@@ -313,8 +312,7 @@ def test_email_client_vide_traite_comme_absent(client):
 
 
 def test_montants_non_finis_rejetes(client):
-    # json.loads (utilisé par FastAPI) accepte le token non standard « Infinity » :
-    # on envoie le corps brut, comme le ferait un client malveillant.
+    # Corps brut avec Infinity (accepté par json.loads)
     headers = register(client)
     raw = (
         '{"clientName": "Client", "vatRate": 0.2,'
@@ -352,8 +350,7 @@ def test_email_devis_echappe_le_html(client, monkeypatch):
     )
 
     headers = register(client)
-    # Les lignes ne figurent plus dans le corps de l'e-mail (elles vivent dans
-    # le PDF, échappement couvert par test_quote_pdf) ; les notes, si.
+    # Lignes dans le PDF uniquement ; notes dans l'e-mail
     body = {
         **QUOTE_BODY,
         "notes": '<img src=x onerror="alert(1)">',

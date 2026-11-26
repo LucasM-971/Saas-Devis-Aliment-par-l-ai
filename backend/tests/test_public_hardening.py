@@ -1,6 +1,4 @@
-"""Durcissement issu de la revue sécurité : bornes des entrées publiques,
-session_uid inter-entreprises, troncature des extractions LLM, verrouillage
-des devis envoyés, invalidation des liens de réinitialisation."""
+"""Durcissement des endpoints publics."""
 
 import uuid
 from decimal import Decimal
@@ -83,10 +81,7 @@ def test_session_uid_dune_autre_entreprise_ne_provoque_pas_de_500(
     )
     assert r.status_code == 200
 
-    # Rejouer le même session_uid sur une autre entreprise ne doit ni écraser la
-    # conversation d'Alpha, ni provoquer de 500 : l'unicité de session_uid est
-    # désormais PAR entreprise (migration conversations_pilote), donc Beta obtient
-    # sa propre conversation distincte portant le même uid.
+    # Même session_uid chez une autre entreprise : nouvelle conversation, pas de 500.
     r = client.post(
         "/api/v1/chat/quote",
         json={"company_public_id": public_b, "message": "Bonjour", "session_uid": session_uid},
@@ -98,8 +93,6 @@ def test_session_uid_dune_autre_entreprise_ne_provoque_pas_de_500(
         conv_a = db.scalar(select(Conversation).where(Conversation.company_id == company_a))
         conv_b = db.scalar(select(Conversation).where(Conversation.company_id == company_b))
         assert conv_a is not None and conv_a.session_uid == session_uid
-        # Conversation distincte de celle d'Alpha (non écrasée) ; même uid autorisé
-        # d'une entreprise à l'autre.
         assert conv_b is not None and conv_b.id != conv_a.id
         assert conv_b.session_uid == session_uid
     finally:
@@ -150,8 +143,7 @@ def test_coordonnees_extraites_trop_longues_sont_tronquees(
             customer=ExtractedCustomer(
                 first_name="A" * 300,
                 last_name="B" * 300,
-                # Pas un e-mail : doit être écarté (il servirait de destinataire SMTP),
-                # pas tronqué en une adresse corrompue.
+                # E-mail invalide écarté, pas tronqué
                 email="e" * 300,
                 phone="0" * 60,
             ),

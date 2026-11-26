@@ -21,8 +21,7 @@ const STEPS: { key: keyof OnboardingStatus; label: string; to: string }[] = [
   { key: 'hasQuote', label: 'Recevoir votre premier devis', to: '/app/chat?tab=share' },
 ];
 
-// Guide d'activation : visible tant que l'entreprise n'est pas prête à recevoir
-// des devis chiffrés depuis le chat (métier + grille + zone + assistant publié).
+// Checklist affichée tant que l'entreprise n'est pas prête.
 export function OnboardingChecklist() {
   const { data } = useApi<OnboardingStatus>('/api/v1/onboarding');
   if (!data || (data.complete && data.hasQuote)) return null;

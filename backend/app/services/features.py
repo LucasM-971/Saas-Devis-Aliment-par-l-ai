@@ -1,9 +1,4 @@
-"""Feature flags par tier d'abonnement (source de vérité des gates premium).
-
-Le front lit ces drapeaux via GET /api/v1/billing/plan et masque/verrouille l'UI ;
-le serveur reste l'autorité : chaque endpoint gated revérifie ici.
-Stripe étant gelé, le changement de plan est simulé (POST /billing/plan).
-"""
+"""Feature flags par offre. Le serveur revérifie chaque gate."""
 
 from dataclasses import dataclass
 

@@ -8,8 +8,7 @@ type Props = {
   columns?: 2 | 3;
 };
 
-// Grille de cartes métier sélectionnables. Partagée entre les Réglages et le
-// wizard d'onboarding pour garder un rendu et un comportement identiques.
+// Choix du métier (Réglages et onboarding).
 export function TradePicker({ value, onChange, columns = 2 }: Props) {
   return (
     <div className={cn('grid gap-2.5', columns === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2')}>

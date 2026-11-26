@@ -395,9 +395,7 @@ function Hero() {
   );
 }
 
-// Compteurs réels de la plateforme (base de données via l'API). La bande est
-// masquée tant que les chiffres ne sont pas chargés ou que tout est à zéro :
-// on n'affiche jamais de métrique inventée.
+// Compteurs réels, masqués s'ils sont vides
 function MetricsBar() {
   const { data } = useApi<PlatformStats>('/api/v1/stats/platform');
   if (!data) return null;
@@ -649,9 +647,7 @@ function DemoSection() {
   );
 }
 
-// Offres réelles servies par l'API (mêmes gates que la page Abonnement de
-// l'app). Le paiement en ligne n'existe pas encore : aucun prix fictif n'est
-// affiché — le plan Premium est offert pendant la bêta.
+// Offres servies par l'API, Premium offert pendant la bêta
 function Pricing() {
   const { data: plans } = useApi<PublicPlan[]>('/api/v1/billing/plans');
   if (!plans || plans.length === 0) return null;
@@ -777,8 +773,7 @@ function Footer() {
 
 export default function Landing() {
   return (
-    // overflow-x-clip (et non -hidden) : empêche le débordement horizontal sans
-    // créer de conteneur de défilement, ce qui préserve le `sticky` du header.
+    // clip plutôt que hidden pour garder le header sticky
     <div className="overflow-x-clip bg-stone-50">
       <div className="flex min-h-dvh flex-col">
         <Header />

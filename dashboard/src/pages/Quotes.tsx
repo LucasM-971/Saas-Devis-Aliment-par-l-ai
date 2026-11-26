@@ -40,8 +40,7 @@ export default function Quotes() {
   const [sampleError, setSampleError] = useState('');
   const [params, setParams] = useSearchParams();
 
-  // Importe un devis exemple (brouillon pré-rempli) puis l'ouvre : on pose
-  // ?quote=<id> et on refetch — l'effet de lien profond l'ouvre dès qu'il arrive.
+  // Importe un devis exemple et l'ouvre via ?quote=
   const importSample = async () => {
     setSampling(true);
     setSampleError('');
@@ -56,7 +55,7 @@ export default function Quotes() {
     }
   };
 
-  // Liens profonds : création (?new=1), présélection du filtre (?status=) et ouverture d'un devis (?quote=).
+  // Liens profonds : ?new=1, ?status=, ?quote=
   useEffect(() => {
     if (params.get('new') === '1') {
       setCreating(true);

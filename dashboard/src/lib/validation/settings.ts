@@ -31,7 +31,7 @@ export const companySchema = z.object({
     .refine((v) => !v || /^https?:\/\/.+/.test(v), 'URL invalide (commence par http)'),
 });
 
-// Formulaire « Ajouter une entreprise » : minimal, sans SIRET (renseigné plus tard si besoin).
+// Ajout d'entreprise minimal (sans SIRET).
 export const newCompanySchema = z.object({
   name: z.string().min(1, 'Raison sociale requise'),
   address: z.string().optional(),

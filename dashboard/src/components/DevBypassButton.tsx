@@ -3,9 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2, Wrench } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
-// Bouton de développement : connexion 1-clic sur le compte de démo seedé.
-// Rendu uniquement en mode dev (import.meta.env.DEV) : en production, il
-// offrirait à n'importe qui un accès direct au compte seedé depuis Login/Register.
+// Connexion 1-clic au compte démo, en dev uniquement.
 export function DevBypassButton() {
   const { loginAsDev } = useAuth();
   const navigate = useNavigate();

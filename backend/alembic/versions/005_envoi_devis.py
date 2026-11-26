@@ -1,10 +1,4 @@
-"""quotes : envoi pilote (retouche artisan, statut e-mail, PDF stocké)
-
-- artisan_edited : posé par PATCH /quotes — un brouillon retouché n'est plus
-  jamais écrasé par un tour de chat du prospect.
-- email_status : résultat du dernier envoi (none/sent/failed, envoi synchrone).
-- sent_pdf : le PDF réellement envoyé au client (document légal immuable,
-  indépendant des lignes de devis qui restent éditables).
+"""quotes : artisan_edited, email_status, sent_pdf
 
 Revision ID: c3f5a7b9d2e4
 Revises: b2e4f6a8c0d1

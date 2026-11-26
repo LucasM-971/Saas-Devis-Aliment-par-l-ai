@@ -1,8 +1,6 @@
-"""Limitation de débit en mémoire (fenêtre glissante, par IP et par endpoint).
+"""Rate limiting en mémoire (fenêtre glissante par IP et endpoint).
 
-Protège les endpoints publics (chat → appels LLM facturés) et l'authentification
-(force brute). Process-local : suffisant pour un déploiement mono-instance ;
-à remplacer par Redis en multi-instances.
+Mono-instance uniquement ; passer à Redis en multi-instances.
 """
 
 import math
@@ -14,8 +12,7 @@ from fastapi import HTTPException, Request, status
 
 from app.config import settings
 
-# Garde-fou mémoire : au-delà de ce nombre de clés suivies, on purge celles
-# dont la fenêtre est expirée (évite une croissance non bornée sur endpoint public).
+# Au-delà, purge des clés expirées
 _MAX_TRACKED_KEYS = 10_000
 
 
@@ -24,12 +21,10 @@ class SlidingWindowLimiter:
         self.limit = limit
         self.window = window_seconds
         self._hits: dict[str, deque[float]] = defaultdict(deque)
-        # Les endpoints synchrones FastAPI s'exécutent dans un threadpool :
-        # l'accès concurrent au dict doit être protégé.
+        # Endpoints sync exécutés en threadpool
         self._lock = threading.Lock()
 
-    # Enregistre un appel. Renvoie None si dans la limite, sinon le délai (s)
-    # à attendre avant réessai (pour l'en-tête Retry-After).
+    # None si autorisé, sinon le délai avant réessai (secondes).
     def hit(self, key: str, now: float | None = None) -> float | None:
         if now is None:
             now = time.monotonic()
@@ -63,8 +58,7 @@ AUTH_LIMITER = SlidingWindowLimiter(limit=10, window_seconds=60)
 
 
 def _client_ip(request: Request) -> str:
-    # X-Forwarded-For n'est honoré que derrière un reverse proxy de confiance
-    # (TRUST_PROXY_HEADERS) : sinon l'en-tête est forgeable et la limite contournable.
+    # X-Forwarded-For seulement si TRUST_PROXY_HEADERS
     if settings.trust_proxy_headers:
         forwarded = request.headers.get("x-forwarded-for")
         if forwarded:

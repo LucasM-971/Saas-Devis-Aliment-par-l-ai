@@ -1,9 +1,7 @@
 name: saas-devis
 
 
-# Orchestration locale — backend (FastAPI) + MySQL + dashboard
-# Le schéma MySQL est créé et mis à jour par Alembic AU DÉMARRAGE du backend
-# (entrypoint.sh) : Alembic est la seule source du schéma, jamais de .sql.
+# Dev local : backend + MySQL + dashboard. Schéma créé par Alembic au démarrage.
 
 services:
   db:
@@ -13,8 +11,7 @@ services:
       MYSQL_DATABASE: devis_ai
       MYSQL_USER: devis
       MYSQL_PASSWORD: devis
-    # Port hôte 3307 pour cohabiter avec un éventuel MySQL natif déjà sur 3306.
-    # (Le backend conteneurisé joint la base en interne via "db:3306".)
+    # 3307 pour ne pas entrer en conflit avec un MySQL local
     ports:
       - '3307:3306'
     volumes:
@@ -27,9 +24,7 @@ services:
   backend:
     build: ./backend
     environment:
-      # Valeurs de DÉVELOPPEMENT (alignées sur le service db ci-dessus).
-      # Les secrets réels (clé Anthropic, SMTP, Sentry) vont dans backend/.env,
-      # jamais commité — voir backend/.env.example.
+      # Valeurs de dev ; secrets réels dans backend/.env
       DATABASE_URL: mysql+pymysql://devis:devis@db:3306/devis_ai
     env_file:
       - path: ./backend/.env
@@ -45,9 +40,7 @@ services:
       interval: 10s
       retries: 6
 
-  # Données de démo (comptes seedés) — one-shot, relancer à la demande :
-  #   docker compose run --rm seed
-  # ATTENTION : réinitialise les données de démo (idempotent).
+  # Seed des données de démo : docker compose run --rm seed
   seed:
     build: ./backend
     entrypoint: ['python', '-m', 'scripts.seed']
@@ -64,12 +57,10 @@ services:
   dashboard:
     image: node:22-alpine
     working_dir: /app
-    # npm ci dans le conteneur : les binaires natifs (esbuild, rollup, tailwind
-    # oxide) doivent être ceux de Linux, pas ceux du node_modules macOS.
+    # Binaires natifs Linux
     command: sh -c "npm ci && npm run dev -- --host 0.0.0.0 --port 5173 --strictPort"
     environment:
-      # Appels API same-origin (/api/...) relayés par le proxy Vite vers le
-      # backend via le réseau compose — évite CORS et l'upgrade HTTPS de Safari.
+      # Appels /api relayés par le proxy Vite
       VITE_API_URL: ''
       API_PROXY_TARGET: http://backend:8000
     volumes:

@@ -1,5 +1,4 @@
-// Client HTTP minimal vers l'API backend. Lit le token + l'entreprise active
-// dans le localStorage (écrits par AuthContext) pour les en-têtes.
+// Client HTTP de l'API ; ajoute token et entreprise active.
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 const STORAGE_KEY = 'devis-ai-auth';
@@ -19,10 +18,7 @@ function authHeaders(): Record<string, string> {
   return headers;
 }
 
-// Normalise le champ `detail` d'une erreur FastAPI en message lisible.
-// Il peut être une chaîne (HTTPException) ou un tableau d'objets de validation
-// (422 pydantic : [{ loc, msg, … }]). Sans ce filtrage, `new Error(detail)`
-// afficherait « [object Object] » côté UI.
+// Transforme `detail` (chaîne ou erreurs 422) en message lisible.
 export function extractDetail(detail: unknown): string | undefined {
   if (typeof detail === 'string') return detail;
   if (Array.isArray(detail)) {
@@ -54,8 +50,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   return res.status === 204 ? (null as T) : ((await res.json()) as T);
 }
 
-// Envoi de fichier (multipart) : on laisse le navigateur poser le Content-Type
-// avec sa boundary — surtout ne pas le forcer à application/json.
+// Content-Type laissé au navigateur (boundary)
 async function upload<T>(path: string, file: File, fieldName = 'file'): Promise<T> {
   const form = new FormData();
   form.append(fieldName, file);

@@ -1,9 +1,4 @@
-"""Taux de TVA applicable : conversion ratio→pourcent et priorités.
-
-Convention projet : un test par calcul. Le piège couvert ici : la base stocke
-un RATIO (0.200) et le moteur attend un POURCENT (20) — brancher sans convertir
-donnerait des devis à 0,2 % de TVA.
-"""
+"""TVA : conversion ratio → pourcentage et priorités."""
 
 from decimal import Decimal
 
@@ -33,8 +28,7 @@ def test_defaut_entreprise():
 
 
 def test_arbre_prime_sur_le_defaut():
-    # L'arbre de qualification décide du taux du CHANTIER (lot B) :
-    # rénovation 10 % même si l'entreprise est réglée à 20 % par défaut.
+    # Le taux de l'arbre prime sur le défaut entreprise
     company = _company(default_vat_rate=Decimal("0.200"))
     assert applicable_tax_rate(company, tree_rate=Decimal("10")) == Decimal("10")
 

@@ -1,25 +1,14 @@
-"""Taux de TVA applicable à un devis généré par le chat.
+"""Taux de TVA d'un devis généré par le chat.
 
-PIÈGE D'UNITÉS : `Company.default_vat_rate` est stocké en RATIO (Numeric(4,3),
-0.200 = 20 %) alors que le moteur de chiffrage (`compute_quote`) et
-`Quote.tax_rate` travaillent en POURCENT (Decimal("20")). Toute consommation
-du réglage entreprise passe par ce module — jamais de conversion inline.
-
-Priorité du taux :
-
-    vat_exempt (franchise art. 293 B du CGI)  →  0 %, écrase tout
-        │ sinon
-    taux porté par l'arbre de qualification   →  le chantier décide (10/20/5,5)
-        │ sinon
-    Company.default_vat_rate                  →  défaut de l'entreprise
+Company.default_vat_rate est un ratio (0.200), compute_quote attend un pourcentage (20).
+Priorité : franchise (0 %) > taux de l'arbre > défaut entreprise.
 """
 
 from decimal import Decimal
 
 from app.models import Company
 
-# Filet de sécurité si le réglage entreprise est absent (ne devrait pas arriver :
-# la colonne a un défaut en base).
+# Valeur de repli
 FALLBACK_RATE_PERCENT = Decimal("20")
 
 

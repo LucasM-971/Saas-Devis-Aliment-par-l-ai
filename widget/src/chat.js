@@ -1,9 +1,6 @@
-/* Interface de conversation du widget (DOM vanilla, sans framework).
-   Construit le fil de messages dans un conteneur fourni et pilote les échanges
-   via le client API. Les styles sont injectés par embed.js dans le Shadow DOM. */
+/** Interface de chat du widget (DOM vanilla). */
 
-// Bornes alignées sur l'API publique : au-delà le serveur répond 422 — on
-// tronque côté client pour qu'une conversation longue ne casse jamais l'échange.
+// Limites de l'API publique
 const MAX_MESSAGE_LEN = 4000;
 const MAX_HISTORY_ITEMS = 50;
 

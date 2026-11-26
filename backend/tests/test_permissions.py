@@ -51,8 +51,7 @@ def _register(client, email, company_name):
     return token, company_id
 
 
-# Rattache un utilisateur à une entreprise existante avec un rôle donné.
-# Renvoie un token pour cet utilisateur et l'id « m… » de son adhésion.
+# Ajoute un membre avec un rôle ; renvoie son token et son id « m… ».
 def _seed_member(TestingSession, company_id, email, role):
     session = TestingSession()
     user = User(email=email, password_hash="seeded-no-login", first_name="Test", last_name="User")
@@ -141,8 +140,7 @@ def test_gestion_membres_requiert_authentification(env):
     assert client.delete("/api/v1/members/m1").status_code == 401
 
 
-# Un admin ne peut ni rétrograder ni retirer un propriétaire : seule la
-# hiérarchie owner → owner est autorisée sur ce rôle.
+# Un admin ne peut pas modifier un owner.
 def test_admin_ne_peut_pas_toucher_un_proprietaire(env):
     TestingSession, client = env
     _owner_token, company_id = _register(client, "alice@acme.fr", "Acme")

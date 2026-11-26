@@ -54,8 +54,7 @@ export function QuoteFormModal({ open, quote, draft, onClose, onSaved }: Props) 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  // (Ré)initialise le formulaire à l'ouverture. Priorité : devis (édition) →
-  // brouillon importé (création pré-remplie) → formulaire vide.
+  // Initialise le formulaire : devis édité, sinon brouillon importé, sinon vide.
   useEffect(() => {
     if (!open) return;
     setTab('edit');

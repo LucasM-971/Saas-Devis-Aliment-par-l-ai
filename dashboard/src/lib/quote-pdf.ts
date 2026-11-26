@@ -6,8 +6,7 @@ import { unitLabel } from './units';
 import { DEFAULT_CANVAS_LAYOUT, withDefaultElements } from './canvas-layout';
 import type { CanvasEl, Company, Quote, QuoteTemplate } from '@/types';
 
-// Coordonnées de l'entreprise nécessaires au PDF (identité + mentions légales).
-// On accepte un sous-ensemble de Company : seul le nom est requis.
+// Infos entreprise pour le PDF ; seul le nom est requis.
 export type PdfCompany = Partial<Company> & { name: string };
 
 function eur(value: number): string {
@@ -41,8 +40,7 @@ function getEl(layout: CanvasEl[], type: CanvasEl['type']): CanvasEl | null {
   return layout.find((e) => e.type === type && e.visible) ?? null;
 }
 
-// Identité légale de l'émetteur affichée en en-tête (une entrée par ligne
-// renseignée : forme juridique, adresse, SIRET/APE, RCS/RM, TVA, contact).
+// Identité légale de l'émetteur (en-tête).
 export function companyIdentityLines(c: PdfCompany): string[] {
   const lines: string[] = [];
 
@@ -69,8 +67,7 @@ export function companyIdentityLines(c: PdfCompany): string[] {
   return lines;
 }
 
-// Mentions légales obligatoires d'un devis BTP (assurance décennale, franchise
-// de TVA, information de médiation, engagement de signature).
+// Mentions légales obligatoires du devis.
 export function legalMentions(c: PdfCompany): string[] {
   const mentions: string[] = [];
 

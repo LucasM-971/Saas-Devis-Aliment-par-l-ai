@@ -1,6 +1,4 @@
-// Aides pures autour du catalogue de prestations d'une entreprise.
-// La persistance (métier + grille tarifaire) passe par l'API :
-// GET/PUT /api/v1/pricing/items et PATCH /api/v1/companies/current.
+// Utilitaires du catalogue de prestations.
 
 import { getTrade, type CatalogItem, type TradeId } from '@/lib/trades';
 
@@ -21,8 +19,7 @@ export function presetCatalog(tradeId: TradeId): CatalogItem[] {
   return trade.catalog.map((item, i) => ({ id: `${tradeId}-${i + 1}`, ...item }));
 }
 
-// Ajoute au catalogue courant les prestations absentes (comparaison par libellé
-// normalisé) sans écraser les lignes déjà personnalisées.
+// Ajoute les prestations absentes sans écraser les existantes.
 export function mergeCatalog(current: CatalogItem[], incoming: CatalogItem[]): CatalogItem[] {
   const seen = new Set(current.map((i) => normalizeLabel(i.label)));
   const additions = incoming.filter((i) => !seen.has(normalizeLabel(i.label)));

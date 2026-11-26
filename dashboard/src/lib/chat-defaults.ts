@@ -1,6 +1,4 @@
-// Modèle de départ de la base de connaissances : proposé lors de la première
-// configuration de l'assistant (page Chat AI), jamais affiché aux prospects
-// tant qu'il n'a pas été publié explicitement.
+// Base de connaissances par défaut de l'assistant.
 
 import type { MessageBloc, QA } from '@/lib/chat-match';
 

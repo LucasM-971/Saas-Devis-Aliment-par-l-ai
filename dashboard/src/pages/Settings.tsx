@@ -50,8 +50,7 @@ function uid() {
 }
 
 export default function Settings() {
-  // L'onglet est piloté par l'URL (?tab=) : liens profonds depuis la checklist
-  // de démarrage et navigation navigateur cohérente.
+  // Onglet piloté par ?tab=
   const [params, setParams] = useSearchParams();
   const requested = params.get('tab');
   const tab = TABS.some((t) => t.id === requested) ? (requested as string) : 'profil';

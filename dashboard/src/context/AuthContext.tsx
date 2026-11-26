@@ -5,9 +5,7 @@ import type { TradeId } from '@/lib/trades';
 import { AuthContext, type AuthContextValue, type NewCompanyInput } from './auth-context';
 
 const STORAGE_KEY = 'devis-ai-auth';
-// Compte de démonstration public seedé en base (parcours /demo). Rôle « viewer »,
-// strictement en lecture seule côté API : ses identifiants peuvent donc figurer
-// dans le bundle de production sans risque d'écriture.
+// Compte démo public en lecture seule.
 const DEMO_CREDENTIALS = { email: 'demo@devis-ai.fr', password: 'demo1234' };
 
 // Fiche entreprise renvoyée par l'API (camelCase, cf. CompanyDetailOut).
@@ -68,8 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     else localStorage.removeItem(STORAGE_KEY);
   }, []);
 
-  // Charge /me et persiste la session. `keepActive` conserve l'entreprise active
-  // (rafraîchissement) au lieu de retomber sur la première.
+  // Charge /me ; `keepActive` conserve l'entreprise active.
   const loadSession = useCallback(
     async (token: string, keepActive?: string | null) => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ token }));
@@ -121,10 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [login],
   );
 
-  // Bouton « Accès dev » (rendu uniquement en dev) : session sur le compte
-  // propriétaire seedé, avec accès complet. Les identifiants sont enfermés dans
-  // la branche `import.meta.env.DEV`, éliminée du bundle de production par Vite —
-  // ils ne sont donc jamais exposés en prod.
+  // Connexion dev sur le compte owner seedé (retiré du build de prod).
   const loginAsDev = useCallback(async () => {
     if (import.meta.env.DEV) {
       return login('lucas@atelier-dupont.fr', 'motdepasse');

@@ -1,14 +1,6 @@
-# Production pilote (VPS) — docker compose -f docker-compose.prod.yml up -d
-#
-# Principes :
-# - MySQL n'est PAS exposé : joignable uniquement sur le réseau compose interne.
-# - Les secrets vivent dans backend/.env.prod (jamais commité) —
-#   voir backend/.env.prod.example pour la liste des variables.
-# - TLS : terminé par un reverse proxy (Caddy ou Nginx) sur l'hôte, qui proxifie
-#   vers backend:8000 ; poser TRUST_PROXY_HEADERS=true dans .env.prod pour que
-#   le rate limiting voie la vraie IP client (X-Forwarded-For).
-# - Sauvegardes : dump quotidien compressé, rotation 14 jours, dans ./backups
-#   (répertoire HORS volume Docker : copiez-le hors du VPS régulièrement).
+# Production : docker compose -f docker-compose.prod.yml up -d
+# Secrets dans backend/.env.prod (voir .env.prod.example).
+# MySQL non exposé, TLS via reverse proxy, TRUST_PROXY_HEADERS=true.
 
 services:
   db:
@@ -28,9 +20,7 @@ services:
     build: ./backend
     restart: unless-stopped
     env_file: ./backend/.env.prod # DATABASE_URL, SECRET_KEY, ANTHROPIC_API_KEY, SMTP_*, SENTRY_DSN…
-    # Pas de "ports" : seul le reverse proxy de l'hôte joint le conteneur.
-    # Si le proxy tourne SUR l'hôte (hors compose), décommentez l'exposition
-    # locale : ports: ['127.0.0.1:8000:8000']
+    # Pas de ports exposés ; si besoin : ports: ['127.0.0.1:8000:8000']
     ports:
       - '127.0.0.1:8000:8000'
     depends_on:

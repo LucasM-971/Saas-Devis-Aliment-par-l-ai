@@ -9,14 +9,8 @@ from sqlalchemy.orm import Session
 from app.models import Company, Quote
 
 
-# Prochaine référence libre pour l'entreprise : DEV-<année>-0001, 0002, …
-# Le verrou porte sur la LIGNE entreprise (toujours existante) : deux créations
-# simultanées (widget public + dashboard) liraient sinon le même max et
-# produiraient la même référence — l'INSERT du second violerait la contrainte
-# unique (company_id, reference) → 500. Un FOR UPDATE sur la plage des
-# références serait piégeux : plage vide (premier devis de l'année) = gap locks
-# compatibles entre transactions → deadlock InnoDB reproduit. SQLite ignore
-# FOR UPDATE sans effet.
+# Prochaine référence DEV-<année>-NNNN.
+# Verrouille la ligne entreprise pour éviter les doublons concurrents.
 def next_quote_reference(db: Session, company_id: int) -> str:
     db.execute(select(Company.id).where(Company.id == company_id).with_for_update())
     prefix = f"DEV-{date.today().year}-"

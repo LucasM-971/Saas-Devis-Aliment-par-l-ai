@@ -162,8 +162,7 @@ def reset_password(payload: ResetPasswordIn, db: DbSession) -> None:
     if user is None:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Compte introuvable")
     user.password_hash = hash_password(payload.password)
-    # Tous les liens en circulation sont consommés : après un reset réussi, un
-    # ancien e-mail « mot de passe oublié » ne doit plus permettre d'en refaire un.
+    # Invalide les autres liens de reset encore actifs
     others = db.scalars(
         select(PasswordResetToken).where(
             PasswordResetToken.user_id == user.id, PasswordResetToken.used_at.is_(None)

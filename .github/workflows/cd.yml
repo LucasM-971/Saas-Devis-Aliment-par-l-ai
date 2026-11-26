@@ -1,9 +1,7 @@
 name: CD
 
-# Ne se déclenche QUE si la CI a réussi sur staging ou prod.
-# Secrets à définir par environnement GitHub (staging / production) :
-#   DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_PATH (dossier contenant docker-compose.prod.yml)
-# Variable optionnelle : HEALTHCHECK_URL (ex. https://api.votre-domaine.fr/health)
+# Déclenché seulement si la CI passe sur staging ou prod.
+# Secrets : DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_PATH ; option : HEALTHCHECK_URL
 
 on:
   workflow_run:

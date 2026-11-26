@@ -7,8 +7,7 @@ from app.schemas.conversation import ConversationMessageOut, ConversationOut
 router = APIRouter(prefix="/api/v1/conversations", tags=["conversations"])
 
 
-# Transcription du chat rattachée à un devis ou un prospect. Réservée à l'entreprise
-# propriétaire (isolation multi-tenant via l'appartenance active).
+# Transcript lié à un devis ou un prospect de l'entreprise active.
 @router.get("/{conversation_id}", response_model=ConversationOut)
 def get_conversation(
     conversation_id: int, db: DbSession, membership: ActiveMembership

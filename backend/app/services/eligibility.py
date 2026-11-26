@@ -1,8 +1,4 @@
-"""Filtre d'éligibilité d'une demande (fonction pure).
-
-Une demande est chiffrable si la prestation est supportée ET la zone desservie.
-Sinon on renvoie la raison (alignée sur les motifs de lead).
-"""
+"""Éligibilité d'une demande : prestation supportée et zone desservie."""
 
 from collections.abc import Iterable
 

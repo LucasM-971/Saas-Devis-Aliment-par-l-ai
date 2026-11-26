@@ -1,10 +1,6 @@
 #!/bin/sh
-# Démarrage du backend : migrations D'ABORD (Alembic est la source du schéma —
-# jamais de schema.sql), puis le serveur. Un échec de migration bloque le boot :
-# mieux vaut un conteneur arrêté qu'une API sur un schéma décalé.
-#
-# Au premier lancement, MySQL passe son healthcheck pendant son initialisation
-# interne, avant d'accepter les connexions réseau : on réessaie 30 s maximum.
+# Applique les migrations puis lance le serveur.
+# Réessaie 30 s le temps que MySQL accepte les connexions.
 set -e
 
 tries=0

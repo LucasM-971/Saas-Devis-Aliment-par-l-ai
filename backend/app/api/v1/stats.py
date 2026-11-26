@@ -16,8 +16,7 @@ def get_stats(db: DbSession, membership: ActiveMembership) -> StatsOut:
     return StatsOut(**stats.__dict__)
 
 
-# Compteurs réels de la plateforme pour la landing. Public : aucune donnée
-# nominative, uniquement des totaux.
+# Totaux publics pour la landing (aucune donnée nominative).
 @router.get("/platform", response_model=PlatformStatsOut)
 def get_platform_stats(db: DbSession) -> PlatformStatsOut:
     def total(model: type) -> int:

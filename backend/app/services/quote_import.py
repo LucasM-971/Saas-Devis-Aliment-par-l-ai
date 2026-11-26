@@ -1,15 +1,7 @@
 """Import d'un devis depuis un fichier (PDF, DOCX ou texte).
 
-Deux étapes :
-  1. `extract_text` : sort le texte brut du fichier (les tableaux DOCX deviennent
-     des lignes « cellule | cellule | … » pour préserver l'alignement des colonnes).
-  2. `parse_draft` : transforme ce texte en brouillon éditable (client, TVA,
-     postes avec quantité / prix unitaire). L'IA est utilisée si une clé est
-     configurée ; sinon on retombe sur une analyse heuristique déterministe.
-
-Le brouillon n'est jamais chiffré ni persisté ici : le front le pré-remplit dans
-le formulaire, l'artisan corrige, puis l'enregistrement passe par la création
-classique (le serveur recalcule alors tous les montants).
+extract_text : texte brut (cellules DOCX jointes par « | »).
+parse_draft : brouillon éditable, via l'IA si configurée sinon heuristique.
 """
 
 from __future__ import annotations
@@ -128,8 +120,7 @@ def _extract_docx(content: bytes) -> str:
         raise UnsupportedFile("DOCX illisible.") from exc
 
     parts: list[str] = [p.text for p in doc.paragraphs if p.text.strip()]
-    # Les postes vivent le plus souvent dans un tableau : on conserve les colonnes
-    # en joignant les cellules par « | » (repère exploité par l'analyse de lignes).
+    # Cellules jointes par « | » pour garder les colonnes
     for table in doc.tables:
         for row in table.rows:
             cells = [c.text.strip() for c in row.cells]
@@ -199,8 +190,7 @@ def _parse_line(line: str) -> DraftLine | None:
 
     other_cells: list[str] = []
     if values and text_cells:
-        # Le libellé est la cellule texte la plus longue ; les autres peuvent
-        # porter l'unité dans une colonne dédiée.
+        # Libellé = cellule texte la plus longue
         label_idx = max(range(len(text_cells)), key=lambda i: len(text_cells[i]))
         label = text_cells[label_idx]
         other_cells = [c for i, c in enumerate(text_cells) if i != label_idx]
@@ -221,8 +211,7 @@ def _parse_line(line: str) -> DraftLine | None:
 
     label = label.strip(" .:-")
     unit = _unit_from(other_cells, label, line)
-    # On ne retire l'unité collée au libellé que si elle n'a pas déjà été trouvée
-    # dans une cellule dédiée (sinon « Forfait déplacement » perdrait « Forfait »).
+    # Ne retire l'unité du libellé que si aucune colonne unité n'existe
     if unit != "unit" and not other_cells:
         cleaned_unit, cleaned_label = _detect_unit(label)
         if cleaned_unit == unit:

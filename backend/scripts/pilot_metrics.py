@@ -1,20 +1,6 @@
-"""Rapport des 3 métriques du pilote « boucle de preuve ».
+"""Métriques du pilote : conversations complétées, devis envoyés sans retouche, délai.
 
-Usage : depuis backend/, avec le venv actif :
-    python -m scripts.pilot_metrics [--days 14] [--company atelier-dupont]
-
-Seuils du pilote (ROADMAP) :
-  1. ≥ 30 % de conversations complétées
-  2. ≥ 50 % de brouillons « envoyables sans retouche »
-  3. < 5 min entre la demande (1er tour) et le brouillon chiffré
-
-Définitions :
-  - complétée  : Conversation.status = completed (devis ou lead produit)
-  - abandonnée : status = open ET inactif depuis > 24 h (DÉRIVÉ à la lecture,
-    jamais écrit en base — voir modèle Conversation)
-  - en cours   : status = open, actif il y a moins de 24 h (hors dénominateur)
-  - sans retouche : devis issu du chat, envoyé sans PATCH artisan
-    (artisan_edited = False au moment de l'envoi)
+Usage (depuis backend/) : python -m scripts.pilot_metrics [--days 14] [--company slug]
 """
 
 import argparse

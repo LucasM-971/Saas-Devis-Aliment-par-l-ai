@@ -13,8 +13,7 @@ def slugify(name: str) -> str:
 
 
 def unique_company_slug(db: Session, name: str) -> str:
-    # Base tronquée sous la colonne slug (String(150)) pour garder la place du
-    # suffixe d'unicité : sinon « -2 » ferait déborder l'INSERT (DataError).
+    # Laisse la place au suffixe d'unicité
     base = slugify(name)[:140].strip("-") or "entreprise"
     slug, i = base, 2
     while db.scalar(select(Company.id).where(Company.slug == slug)):

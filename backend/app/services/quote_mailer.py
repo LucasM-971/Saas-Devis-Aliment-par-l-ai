@@ -1,8 +1,4 @@
-"""E-mail « devis au client » : message d'accompagnement + PDF joint.
-
-Le corps ne détaille PAS les prestations : le PDF est LE document (une seule
-source de rendu, voir `quote_pdf`). Seul le total TTC est rappelé.
-"""
+"""E-mail d'envoi du devis : message court + PDF joint."""
 
 import html as html_lib
 from decimal import Decimal

@@ -1,9 +1,4 @@
-"""Extraction structurée d'une demande de devis à partir de la conversation.
-
-Le LLM qualifie et extrait (service, code postal, quantités par poste, coordonnées) ;
-il ne calcule jamais de prix. Le chiffrage déterministe est fait ailleurs par
-`app.services.quote_builder` à partir de la grille tarifaire en base.
-"""
+"""Extraction structurée d'une demande de devis. Le LLM n'invente jamais de prix."""
 
 from pydantic import ValidationError
 
@@ -12,13 +7,9 @@ from app.llm.prompts import build_extraction_prompt
 from app.llm.schemas import CatalogItem, ExtractionResult, HistoryMessage, ServiceRef
 
 
-# Schéma de sortie structuré, construit par entreprise : les slugs de services et les
-# identifiants du catalogue sont injectés comme enum, le modèle ne peut donc pas
-# inventer un service ou un poste absent de la grille.
-# Tous les champs sont requis (contrainte des structured outputs) ; les valeurs absentes sont null.
+# Schéma de sortie par entreprise : services et postes limités à la grille via enum.
 def _extraction_schema(catalog: list[CatalogItem], services: list[ServiceRef]) -> dict:
-    # enum vide interdit par JSON Schema : sans services, seul null est possible ;
-    # sans catalogue, on retombe sur une chaîne libre (ids invalides ignorés en aval).
+    # Enum vide interdit : null seul, ou chaîne libre sans catalogue
     service_slug = (
         {"enum": [s.slug for s in services] + [None]} if services else {"type": "null"}
     )
@@ -70,8 +61,7 @@ def extract(
 ) -> ExtractionResult:
     data = _structured_call(
         system=build_extraction_prompt(company_name, catalog, services),
-        # Historique complet : les faits énoncés aux premiers tours (surface,
-        # adresse) ne doivent jamais sortir de la fenêtre d'extraction.
+        # Historique complet pour ne rien perdre des premiers tours
         messages=_conversation(history, message, limit=None),
         schema=_extraction_schema(catalog, services),
     )
@@ -81,7 +71,6 @@ def extract(
     except ValidationError as exc:
         raise LLMUnavailable("Extraction LLM invalide") from exc
 
-    # minimum/maximum non supportés par les structured outputs : les quantités
-    # nulles ou négatives sont écartées ici (poste inchiffrable).
+    # Quantités ≤ 0 ignorées
     result.items = [item for item in result.items if item.quantity > 0]
     return result

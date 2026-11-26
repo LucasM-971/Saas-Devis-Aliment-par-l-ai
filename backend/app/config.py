@@ -7,10 +7,7 @@ class Settings(BaseSettings):
 
     database_url: str = "mysql+pymysql://devis:devis@localhost:3306/devis_ai"
     secret_key: str = "change-me"
-    # Environnement d'exécution : "dev" (mots de passe de seed faibles, pratiques
-    # en local) ou "prod". En prod, les comptes à privilèges seedés reçoivent un
-    # mot de passe fort aléatoire ; seul le compte de démonstration en lecture
-    # seule (rôle viewer) conserve un mot de passe public.
+    # "dev" ou "prod" ; en prod, les comptes seedés à privilèges ont un mot de passe aléatoire
     environment: str = "dev"
     access_token_expire_minutes: int = 60 * 24
     # Fournisseur LLM : "anthropic" (défaut), "gemini", "mistral" ou "ollama" (local).
@@ -26,8 +23,7 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:5173"
     # Limitation de débit des endpoints publics / auth (désactivable en local).
     rate_limit_enabled: bool = True
-    # N'honorer X-Forwarded-For (IP client réelle) que derrière un reverse proxy
-    # de confiance : sinon l'en-tête est forgeable et la limite contournable.
+    # Lire X-Forwarded-For uniquement derrière un proxy de confiance
     trust_proxy_headers: bool = False
     # E-mails : "console" (dev, affiche dans les logs) ou "smtp" (production).
     email_mode: str = "console"
@@ -38,11 +34,10 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     # L'envoi est synchrone dans la requête : timeout court, erreur nette.
     smtp_timeout_seconds: int = 8
-    # Observabilité pilote : renseigner un DSN active Sentry (sinon no-op).
+    # Sentry activé si un DSN est fourni
     sentry_dsn: str = ""
 
-    # En prod, une clé faible ou laissée à sa valeur d'exemple permettrait de
-    # forger des JWT valides : on refuse de démarrer.
+    # Refuse de démarrer en prod avec une clé faible
     @model_validator(mode="after")
     def _check_secret_key(self) -> "Settings":
         if self.environment == "prod":

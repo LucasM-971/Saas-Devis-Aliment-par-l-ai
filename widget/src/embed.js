@@ -1,20 +1,11 @@
-/* Point d'entrée du widget Devis AI embarquable.
-
-   Intégration sur n'importe quel site (juste avant </body>) :
-
-     <script type="module"
-             src="https://cdn.devis-ai.fr/widget.js"
-             data-company="VOTRE_PUBLIC_ID"
-             data-api="https://api.devis-ai.fr"></script>
-
-   Attributs :
-     data-company  (requis) identifiant public de l'entreprise
-     data-api      (optionnel) base de l'API (défaut : https://api.devis-ai.fr)
-     data-color    (optionnel) force la couleur d'accent (sinon celle configurée)
-     data-position (optionnel) "left" pour ancrer la bulle à gauche
-
-   Tout est rendu dans un Shadow DOM : aucun style du site hôte ne fuit, et le
-   widget n'affecte pas la page. */
+/**
+ * Widget embarquable.
+ *
+ * <script type="module" src="https://cdn.devis-ai.fr/widget.js"
+ *         data-company="VOTRE_PUBLIC_ID"></script>
+ *
+ * Options : data-api, data-color, data-position="left". Rendu dans un Shadow DOM.
+ */
 
 import { createApi } from './api.js';
 import { createChat } from './chat.js';
@@ -166,8 +157,7 @@ function mountWidget({ config, api, colorOverride, side }) {
   const idBlock = el('div', 'da-header__id');
   idBlock.appendChild(el('div', 'da-avatar', ICON_BOT));
   const nameBlock = el('div');
-  // textContent (jamais innerHTML) : le nom d'entreprise vient de l'API et ne
-  // doit pas pouvoir injecter du HTML dans la page hôte.
+  // textContent pour éviter l'injection HTML
   const nameEl = el('div', 'da-header__name');
   nameEl.textContent = config.company_name || '';
   nameBlock.appendChild(nameEl);

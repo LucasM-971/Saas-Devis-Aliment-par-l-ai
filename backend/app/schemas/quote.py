@@ -4,8 +4,7 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 # Schémas alignés sur les types du front (camelCase, statuts FR, TVA en ratio 0..1).
 
-# Miroir de app.models.base.UNITS : la colonne MySQL est un Enum — une valeur
-# inconnue doit être refusée en 422, pas exploser en DataError (500).
+# Doit correspondre à app.models.base.UNITS
 Unit = Literal["m2", "ml", "m3", "unit", "hour", "flat"]
 
 
@@ -65,8 +64,7 @@ class StatusUpdate(BaseModel):
     status: str
 
 
-# Brouillon extrait d'un fichier importé (PDF/DOCX/texte). Non persisté : il
-# pré-remplit le formulaire côté front, où l'utilisateur le corrige avant d'enregistrer.
+# Brouillon importé, non enregistré.
 class QuoteDraftLine(BaseModel):
     label: str
     quantity: float = 1

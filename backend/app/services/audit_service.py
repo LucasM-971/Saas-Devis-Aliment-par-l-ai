@@ -1,9 +1,4 @@
-"""Journal d'activité : une ligne par action significative sur l'espace.
-
-Les libellés d'affichage (type / acteur / action / cible) sont rangés dans
-`meta`, ce que consomme directement la page « Journal d'activité » du dashboard.
-N'appelle pas commit : l'écriture part avec la transaction de l'action auditée.
-"""
+"""Journal d'activité (sans commit : suit la transaction appelante)."""
 
 from sqlalchemy.orm import Session
 
@@ -19,7 +14,7 @@ def _display_name(db: Session, user_id: int | None) -> str:
     return " ".join(p for p in [user.first_name, user.last_name] if p) or user.email
 
 
-# Enregistre un événement. `actor` prime sur `actor_user_id` (ex. « Widget », « IA Devis AI »).
+# Enregistre un événement ; `actor` prime sur `actor_user_id`.
 def record(
     db: Session,
     *,

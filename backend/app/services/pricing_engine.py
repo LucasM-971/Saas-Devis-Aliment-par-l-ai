@@ -1,9 +1,6 @@
-"""Moteur de calcul déterministe des devis (fonction pure, sans DB ni LLM).
+"""Calcul déterministe des devis en Decimal, arrondi au centime.
 
-Le calcul ne dépend QUE des entrées : mêmes postes + quantités → même devis.
-L'argent est manipulé en Decimal et arrondi au centime (jamais de float).
-
-Ordre du calcul : lignes → sous-total HT → remise → HT net → TVA → TTC.
+lignes → sous-total HT → remise → HT net → TVA → TTC
 """
 
 from dataclasses import dataclass
@@ -51,9 +48,7 @@ def compute_line_total(unit_price: Decimal, quantity: Decimal) -> Decimal:
     return _money(unit_price * quantity)
 
 
-# Remise en euros à partir du sous-total HT. `value` est un pourcentage
-# (percent) ou un montant en euros (amount). Bornée à [0, subtotal] :
-# une remise ne rend jamais un devis négatif.
+# Remise en euros (pourcentage ou montant), bornée à [0, subtotal].
 def compute_discount(
     subtotal: Decimal, discount_type: str | None, value: Decimal
 ) -> Decimal:
@@ -66,8 +61,7 @@ def compute_discount(
     return min(amount, subtotal)
 
 
-# Calcule un devis complet : lignes chiffrées + HT + remise + TVA + TTC.
-# tax_rate est exprimé en pourcentage (ex. Decimal("20") = 20 %).
+# Calcule un devis complet ; tax_rate en pourcentage (20 = 20 %).
 def compute_quote(
     lines: list[LineInput],
     tax_rate: Decimal,

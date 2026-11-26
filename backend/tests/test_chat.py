@@ -67,8 +67,7 @@ def test_prompt_reprend_les_boutons_des_blocs():
 def test_message_valide_le_corps():
     # message et company_public_id requis → 422 si absents.
     assert client.post("/api/v1/chat/message", json={}).status_code == 422
-    # La base de connaissances ne peut plus être fournie dans le corps :
-    # sans public_id, la requête est rejetée avant tout appel LLM.
+    # Sans public_id, rejet avant tout appel LLM
     assert (
         client.post("/api/v1/chat/message", json={"message": "Bonjour"}).status_code == 422
     )

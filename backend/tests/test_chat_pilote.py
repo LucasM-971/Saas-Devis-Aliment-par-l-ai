@@ -1,6 +1,4 @@
-"""Comportements pilote du chat public : persistance par tour, idempotence du
-devis (1 conversation = 1 brouillon vivant), TVA entreprise, et la régression
-« même session_uid chez deux entreprises » (ex-500)."""
+"""Chat public : persistance par tour, idempotence du devis, TVA, session_uid multi-entreprises."""
 
 import os
 import uuid
@@ -99,7 +97,7 @@ def _fake_extract(item_id, quantity):
     return fake
 
 
-# ─── Régression : collision cross-company de session_uid (ex-IntegrityError 500) ─
+# ─── Même session_uid dans deux entreprises ───
 
 
 def test_meme_session_uid_chez_deux_entreprises(env, monkeypatch):

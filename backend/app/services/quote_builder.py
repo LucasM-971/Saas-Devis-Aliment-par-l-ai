@@ -1,12 +1,6 @@
-"""Assemble un devis à partir d'une demande extraite (fonction pure, sans DB ni LLM).
+"""Construit un devis depuis une demande extraite.
 
-Le pont entre la qualification (LLM) et le chiffrage :
-1. vérifie l'éligibilité (service supporté + zone desservie) ;
-2. ne retient que les postes réellement présents dans la grille (garde-fou) ;
-3. délègue le calcul au moteur déterministe `compute_quote`.
-
-Les prix proviennent TOUJOURS de la grille (`PriceItemRef`), jamais de l'extraction :
-le LLM ne fournit que des identifiants de poste et des quantités.
+Les prix viennent toujours de la grille ; le LLM ne fournit que postes et quantités.
 """
 
 from collections.abc import Iterable
@@ -64,8 +58,7 @@ def build_quote(
     resolved: list[tuple[int, LineInput]] = []
     for item in items:
         ref = by_id.get(item.price_item_id)
-        # Garde-fou : on ignore les postes inconnus et les quantités non positives.
-        # Le prix vient du poste (grille), la quantité de l'extraction.
+        # Ignore postes inconnus et quantités ≤ 0
         if ref is None or item.quantity <= 0:
             continue
         resolved.append(

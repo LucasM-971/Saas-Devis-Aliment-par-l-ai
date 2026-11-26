@@ -29,8 +29,7 @@ from app.api.v1 import (
 from app.config import settings
 from app.database import engine
 
-# Observabilité pilote : un 500 chez un prospect doit être visible. No-op sans
-# DSN ; l'import est gardé pour que l'absence du paquet ne casse jamais l'API.
+# Sentry optionnel
 if settings.sentry_dsn:
     try:
         import sentry_sdk
@@ -41,9 +40,7 @@ if settings.sentry_dsn:
 
 app = FastAPI(title="Devis AI API", version="0.1.0")
 
-# CORS ouvert : le widget est embarqué sur des sites tiers arbitraires (endpoints
-# publics /chat/*) et l'authentification est 100 % Bearer (aucun cookie), donc
-# allow_credentials reste à False — un site tiers ne peut pas rejouer une session.
+# CORS ouvert pour le widget ; auth Bearer donc pas de credentials
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -52,9 +49,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Les erreurs de validation renvoient la valeur reçue (« input ») : si elle
-# contient NaN/Infinity (acceptés par json.loads), la sérialisation JSON de la
-# réponse 422 échouerait en 500. On remplace les flottants non finis par leur repr.
+# Remplace NaN/Infinity pour que la réponse 422 reste sérialisable
 def _finite(value: object) -> object:
     if isinstance(value, float) and not math.isfinite(value):
         return repr(value)

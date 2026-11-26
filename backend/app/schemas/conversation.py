@@ -4,8 +4,7 @@ from pydantic import BaseModel, Field
 
 from app.llm.schemas import MAX_HISTORY_MESSAGES, MAX_MESSAGE_CHARS, HistoryMessage
 
-# Schémas du parcours widget « conversation → devis ».
-# Surface publique (pas d'auth) : l'entreprise est identifiée par son public_id.
+# Schémas du parcours widget (public).
 
 
 # Corps envoyé par le widget pour transformer une conversation en devis.
@@ -13,8 +12,7 @@ class QuoteFromChatRequest(BaseModel):
     company_public_id: str = Field(max_length=36)
     message: str = Field(min_length=1, max_length=MAX_MESSAGE_CHARS)
     history: list[HistoryMessage] = Field(default_factory=list, max_length=MAX_HISTORY_MESSAGES)
-    # Borné à la colonne conversations.session_uid (CHAR(36)) : au-delà, l'INSERT
-    # échouerait en DataError (500 sur endpoint public).
+    # CHAR(36)
     session_uid: str | None = Field(default=None, max_length=36)
 
 

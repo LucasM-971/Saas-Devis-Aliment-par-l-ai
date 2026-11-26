@@ -18,8 +18,7 @@ TEST_URL = os.environ.get(
 )
 
 
-# Le rate limiting est coupé par défaut (TestClient = une seule IP pour toute la
-# suite) ; les tests dédiés le réactivent explicitement.
+# Rate limit désactivé par défaut dans les tests
 @pytest.fixture(autouse=True)
 def _sans_rate_limit(monkeypatch):
     monkeypatch.setattr(settings, "rate_limit_enabled", False)

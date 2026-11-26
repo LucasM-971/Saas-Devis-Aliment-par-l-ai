@@ -1,11 +1,4 @@
-"""La chaîne de migrations Alembic reconstruit-elle le schéma complet sur base
-vide ? Convention projet : Alembic est LA source du schéma (schema.sql n'est
-plus monté par docker-compose ; l'entrypoint fait `alembic upgrade head`).
-
-Le test compare tables ET colonnes entre le schéma migré et Base.metadata :
-toute colonne ajoutée à un modèle sans migration (ou l'inverse) casse ici,
-pas au déploiement.
-"""
+"""Les migrations Alembic produisent exactement le schéma des modèles."""
 
 import os
 

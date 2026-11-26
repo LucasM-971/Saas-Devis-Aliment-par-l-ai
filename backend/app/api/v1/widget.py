@@ -70,8 +70,7 @@ def put_settings(
     return _to_out(settings)
 
 
-# Aperçu du dashboard : teste une base de connaissances non sauvegardée.
-# Authentifié — contrairement à /chat/message (public), la BDC vient du corps.
+# Aperçu authentifié avec une base de connaissances non sauvegardée.
 @router.post("/preview/message", response_model=ChatResponse)
 def preview_message(
     payload: ChatPreviewRequest, db: DbSession, membership: ActiveMembership

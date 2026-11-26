@@ -11,8 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks/useAuth';
 import { newCompanySchema, type NewCompanyValues } from '@/lib/validation/settings';
 
-// Création d'un nouvel espace entreprise : chaque entreprise a ses propres devis,
-// prospects et catalogue. Le SIRET n'est pas demandé ici (réglable ensuite).
+// Création d'un nouvel espace entreprise.
 export default function CompanyNew() {
   const { addCompany } = useAuth();
   const navigate = useNavigate();

@@ -56,8 +56,7 @@ def upsert_template(
     payload: QuoteTemplateIn, db: DbSession, membership: ActiveMembership
 ) -> QuoteTemplateOut:
     require_admin(membership)
-    # Gate premium : la personnalisation du modèle (logo, couleurs, mise en page)
-    # est réservée au plan Premium ; le plan gratuit garde le modèle standard.
+    # Personnalisation du modèle réservée au premium
     company = db.get(Company, membership.company_id)
     if company is None or not has_feature(company.plan, "quote_customization"):
         raise HTTPException(

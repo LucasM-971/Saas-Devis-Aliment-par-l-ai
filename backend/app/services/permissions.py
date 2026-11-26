@@ -1,11 +1,4 @@
-"""Autorisation par rôle au sein d'une entreprise.
-
-Grille des rôles (du plus au moins privilégié) :
-- owner  : tout, y compris l'abonnement ;
-- admin  : configuration (fiche, grille, zones, assistant, modèle de devis) + écriture métier ;
-- member : écriture métier (devis, prospects) ;
-- viewer : lecture seule.
-"""
+"""Autorisation par rôle : owner > admin > member > viewer (lecture seule)."""
 
 from fastapi import HTTPException, status
 
