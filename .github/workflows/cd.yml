@@ -1,0 +1,136 @@
+name: CD
+
+# Ne se déclenche QUE si la CI a réussi sur staging ou prod.
+# Secrets à définir par environnement GitHub (staging / production) :
+#   DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_PATH (dossier contenant docker-compose.prod.yml)
+# Variable optionnelle : HEALTHCHECK_URL (ex. https://api.votre-domaine.fr/health)
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [staging, prod]
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: cd-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build & publication des artefacts
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      image: ${{ steps.meta.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - id: meta
+        run: |
+          repo="ghcr.io/${GITHUB_REPOSITORY,,}/backend"
+          echo "image=$repo:${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+          echo "branch_tag=$repo:${{ github.event.workflow_run.head_branch }}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push image backend
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image }}
+            ${{ steps.meta.outputs.branch_tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      - name: Build dashboard
+        working-directory: dashboard
+        run: npm ci && npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-dist
+          path: dashboard/dist
+          retention-days: 14
+
+  deploy:
+    name: Déploiement (${{ github.event.workflow_run.head_branch }})
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ github.event.workflow_run.head_branch == 'prod' && 'production' || 'staging' }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dashboard-dist
+          path: dist
+
+      - name: Vérifier la configuration
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          if [ -z "$DEPLOY_HOST" ]; then
+            echo "::error::Secrets DEPLOY_* absents pour cet environnement — déploiement impossible."
+            exit 1
+          fi
+
+      - name: Préparer SSH
+        env:
+          KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$KEY" > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts
+
+      - name: Envoyer le dashboard
+        env:
+          TARGET: ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}
+          DIR: ${{ secrets.DEPLOY_PATH }}
+        run: rsync -az --delete -e "ssh -i ~/.ssh/id_deploy" dist/ "$TARGET:$DIR/dashboard-dist/"
+
+      - name: Mettre à jour le backend
+        env:
+          TARGET: ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}
+          DIR: ${{ secrets.DEPLOY_PATH }}
+          IMAGE: ${{ needs.build.outputs.image }}
+          GH_USER: ${{ github.actor }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ssh -i ~/.ssh/id_deploy "$TARGET" bash -s <<EOF
+          set -euo pipefail
+          cd "$DIR"
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_USER" --password-stdin
+          export BACKEND_IMAGE="$IMAGE"
+          docker compose -f docker-compose.prod.yml pull backend
+          docker compose -f docker-compose.prod.yml up -d --no-build
+          docker logout ghcr.io
+          for i in \$(seq 1 30); do
+            curl -fsS http://127.0.0.1:8000/health && exit 0
+            sleep 2
+          done
+          echo "Healthcheck KO après déploiement" >&2
+          docker compose -f docker-compose.prod.yml logs --tail=100 backend
+          exit 1
+          EOF
+
+      - name: Healthcheck public
+        if: vars.HEALTHCHECK_URL != ''
+        run: curl -fsS --retry 10 --retry-delay 3 --retry-all-errors "${{ vars.HEALTHCHECK_URL }}"

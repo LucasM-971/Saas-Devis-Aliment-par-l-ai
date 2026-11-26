@@ -1,0 +1,87 @@
+name: saas-devis
+
+
+# Orchestration locale — backend (FastAPI) + MySQL + dashboard
+# Le schéma MySQL est créé et mis à jour par Alembic AU DÉMARRAGE du backend
+# (entrypoint.sh) : Alembic est la seule source du schéma, jamais de .sql.
+
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: devis_ai
+      MYSQL_USER: devis
+      MYSQL_PASSWORD: devis
+    # Port hôte 3307 pour cohabiter avec un éventuel MySQL natif déjà sur 3306.
+    # (Le backend conteneurisé joint la base en interne via "db:3306".)
+    ports:
+      - '3307:3306'
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-pdevis']
+      interval: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      # Valeurs de DÉVELOPPEMENT (alignées sur le service db ci-dessus).
+      # Les secrets réels (clé Anthropic, SMTP, Sentry) vont dans backend/.env,
+      # jamais commité — voir backend/.env.example.
+      DATABASE_URL: mysql+pymysql://devis:devis@db:3306/devis_ai
+    env_file:
+      - path: ./backend/.env
+        required: false
+    ports:
+      # BACKEND_PORT=8017 docker compose up  si le 8000 est déjà pris sur l'hôte.
+      - '${BACKEND_PORT:-8000}:8000'
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'curl', '-fsS', 'http://localhost:8000/health']
+      interval: 10s
+      retries: 6
+
+  # Données de démo (comptes seedés) — one-shot, relancer à la demande :
+  #   docker compose run --rm seed
+  # ATTENTION : réinitialise les données de démo (idempotent).
+  seed:
+    build: ./backend
+    entrypoint: ['python', '-m', 'scripts.seed']
+    environment:
+      DATABASE_URL: mysql+pymysql://devis:devis@db:3306/devis_ai
+    env_file:
+      - path: ./backend/.env
+        required: false
+    depends_on:
+      backend:
+        condition: service_healthy
+    profiles: ['seed']
+
+  dashboard:
+    image: node:22-alpine
+    working_dir: /app
+    # npm ci dans le conteneur : les binaires natifs (esbuild, rollup, tailwind
+    # oxide) doivent être ceux de Linux, pas ceux du node_modules macOS.
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0 --port 5173 --strictPort"
+    environment:
+      # Appels API same-origin (/api/...) relayés par le proxy Vite vers le
+      # backend via le réseau compose — évite CORS et l'upgrade HTTPS de Safari.
+      VITE_API_URL: ''
+      API_PROXY_TARGET: http://backend:8000
+    volumes:
+      - ./dashboard:/app
+      # Volume nommé qui masque le node_modules de l'hôte.
+      - dashboard_node_modules:/app/node_modules
+    ports:
+      - '5173:5173'
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  dbdata:
+  dashboard_node_modules:

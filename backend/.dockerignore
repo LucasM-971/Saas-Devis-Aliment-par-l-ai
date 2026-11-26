@@ -1,0 +1,10 @@
+# Ne jamais embarquer l'environnement local ni les secrets dans l'image.
+.env
+.env.*
+!.env.example
+!.env.prod.example
+.venv
+venv
+__pycache__
+*.pyc
+.pytest_cache

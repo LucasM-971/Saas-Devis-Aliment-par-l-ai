@@ -1,0 +1,43 @@
+# Dépendances
+node_modules/
+.pnp
+.pnp.js
+
+# Build
+dist/
+build/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Environnement
+.env
+.env.local
+.env.*.local
+.env.prod
+!.env.example
+!.env.prod.example
+
+# Sauvegardes MySQL du pilote (docker-compose.prod.yml)
+backups/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Éditeurs / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Tests / couverture
+coverage/
+.vitest/
+.gstack/

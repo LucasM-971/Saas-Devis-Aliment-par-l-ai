@@ -1,0 +1,16 @@
+{
+  "name": "devis-ai-widget",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Widget Devis AI — chatbot embarquable (bulle flottante, Shadow DOM)",
+  "type": "module",
+  "main": "src/embed.js",
+  "module": "src/embed.js",
+  "exports": {
+    ".": "./src/embed.js",
+    "./embed": "./src/embed.js"
+  },
+  "scripts": {
+    "build": "echo \"build widget à implémenter\" && exit 0"
+  }
+}

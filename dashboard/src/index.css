@@ -1,0 +1,166 @@
+@import 'tailwindcss';
+
+/* =============================================================================
+   Design system Devis AI — « Clarté opérationnelle calme »
+   Canvas slate clair, accent indigo de confiance, couleurs réservées aux
+   statuts et actions. Pensé pour de longues sessions B2B (faible fatigue).
+   ============================================================================= */
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Surfaces neutres */
+  --color-canvas: #fafaf8;
+  --color-surface: #ffffff;
+
+  /* Accent de marque (orange BTP) */
+  --color-brand-50: #fff7ed;
+  --color-brand-100: #ffedd5;
+  --color-brand-200: #fed7aa;
+  --color-brand-300: #fdba74;
+  --color-brand-400: #fb923c;
+  --color-brand-500: #f97316;
+  --color-brand-600: #ea580c;
+  --color-brand-700: #c2410c;
+  --color-brand-800: #9a3412;
+  --color-brand-900: #7c2d12;
+
+  /* Ombres douces, peu contrastées */
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06);
+  --shadow-pop: 0 4px 6px -1px rgb(15 23 42 / 0.08), 0 2px 4px -2px rgb(15 23 42 / 0.06);
+
+  /* Rayons (alignés sur la maquette Figma : ~8 à 12px) */
+  --radius-card: 0.75rem;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  /* Échelle globale de l'interface (tout est en rem → zoom proportionnel). */
+  /* Mobile 16px → tablette 18px → bureau 20px. */
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+  }
+  @media (min-width: 768px) {
+    html {
+      font-size: 18px;
+    }
+  }
+  @media (min-width: 1280px) {
+    html {
+      font-size: 20px;
+    }
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-canvas);
+    color: var(--color-slate-900);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Chiffres alignés pour les montants et statistiques */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Anneau de focus cohérent et accessible sur toute l'app */
+  *:focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+
+  /* Les éléments interactifs ne doivent pas être sélectionnables */
+  button,
+  [role='tab'],
+  label {
+    user-select: none;
+  }
+}
+
+/* =============================================================================
+   Animations — légères et professionnelles
+   Entrée au chargement (hero), révélation au scroll, micro-interactions.
+   Tout est désactivé si l'utilisateur préfère réduire les animations.
+   ============================================================================= */
+@layer utilities {
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Entrée au montage (ex. contenu du hero), avec délai en escalier. */
+  .animate-enter {
+    opacity: 0;
+    animation: fade-in-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  /* Révélation progressive au scroll (piloté par IntersectionObserver). */
+  .reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+      opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Transition d'entrée lors d'un changement de page (rejouée à chaque route). */
+  @keyframes page-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .page-transition {
+    animation: page-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Léger soulèvement au survol pour les cartes. */
+  .hover-lift {
+    transition:
+      transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-enter,
+  .reveal,
+  .page-transition {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .hover-lift:hover {
+    transform: none !important;
+  }
+}
