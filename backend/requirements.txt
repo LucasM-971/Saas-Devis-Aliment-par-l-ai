@@ -28,7 +28,7 @@ weasyprint>=63
 sentry-sdk[fastapi]>=2.19
 
 # Import de devis (extraction de texte depuis un fichier)
-pypdf>=5.0               # extraction de texte des PDF
+pypdf>=7.1.1               # extraction de texte des PDF
 python-docx>=1.1         # extraction de texte des .docx
 
 # Tests
