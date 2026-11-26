@@ -29,7 +29,7 @@ sentry-sdk[fastapi]>=2.19
 
 # Import de devis (extraction de texte depuis un fichier)
 pypdf>=5.0               # extraction de texte des PDF
-python-docx>=1.1         # extraction de texte des .docx
+python-docx>=1.2.0         # extraction de texte des .docx
 
 # Tests
 pytest>=8.3
